@@ -19,11 +19,11 @@ namespace ChessC
             InitializeComponent();
         }
 
-        struct coordPair {
+        public struct coordPair {
             public int xOffset, yOffset;
         };
 
-        enum directions { 
+        public enum directions { 
             Up,
             UpRight,
             Right,
@@ -33,56 +33,54 @@ namespace ChessC
             Left,
             LeftUp
         }
-
-        coordPair convertDirectionToOffset(directions direction)
-        {
-            coordPair tempCoordPair;
-            switch(direction) { 
-                case directions.Up:
-                    tempCoordPair.xOffset = 0;
-                    tempCoordPair.yOffset = 1;
-                    break;
-                case directions.UpRight:
-                    tempCoordPair.xOffset = 1;
-                    tempCoordPair.yOffset = 1;
-                    break;
-                case directions.Right:
-                    tempCoordPair.xOffset = 1;
-                    tempCoordPair.yOffset = 0;
-                    break;
-                case directions.RightDown:
-                    tempCoordPair.xOffset = 1;
-                    tempCoordPair.yOffset = -1;
-                    break;
-                case directions.Down:
-                    tempCoordPair.xOffset = 0;
-                    tempCoordPair.yOffset = -1;
-                    break;
-                case directions.DownLeft:
-                    tempCoordPair.xOffset = -1;
-                    tempCoordPair.yOffset = -1;
-                    break;
-                case directions.Left:
-                    tempCoordPair.xOffset = -1;
-                    tempCoordPair.yOffset = 0;
-                    break;
-                case directions.LeftUp:
-                    tempCoordPair.xOffset = -1;
-                    tempCoordPair.yOffset = 1;
-                    break;
-                default:
-                    tempCoordPair.xOffset = 0;
-                    tempCoordPair.yOffset = 0;
-                    break;
+            public coordPair convertDirectionToOffset(directions direction)
+            {
+                coordPair tempCoordPair;
+                switch (direction)
+                {
+                    case directions.Up:
+                        tempCoordPair.xOffset = 0;
+                        tempCoordPair.yOffset = 1;
+                        break;
+                    case directions.UpRight:
+                        tempCoordPair.xOffset = 1;
+                        tempCoordPair.yOffset = 1;
+                        break;
+                    case directions.Right:
+                        tempCoordPair.xOffset = 1;
+                        tempCoordPair.yOffset = 0;
+                        break;
+                    case directions.RightDown:
+                        tempCoordPair.xOffset = 1;
+                        tempCoordPair.yOffset = -1;
+                        break;
+                    case directions.Down:
+                        tempCoordPair.xOffset = 0;
+                        tempCoordPair.yOffset = -1;
+                        break;
+                    case directions.DownLeft:
+                        tempCoordPair.xOffset = -1;
+                        tempCoordPair.yOffset = -1;
+                        break;
+                    case directions.Left:
+                        tempCoordPair.xOffset = -1;
+                        tempCoordPair.yOffset = 0;
+                        break;
+                    case directions.LeftUp:
+                        tempCoordPair.xOffset = -1;
+                        tempCoordPair.yOffset = 1;
+                        break;
+                    default:
+                        tempCoordPair.xOffset = 0;
+                        tempCoordPair.yOffset = 0;
+                        break;
+                }
+                return tempCoordPair;
             }
-
-            return tempCoordPair;
-        }
-
         class MoveOffsets {
-            public bool[] isRecurring;
-            public directions[] moveDirections;
-            public coordPair[] moveOffsets;
+            public bool isRecurring;
+            public directions moveDirection;
+            public coordPair moveOffset;
         }
 
         class Board {
@@ -112,48 +110,35 @@ namespace ChessC
         abstract class Piece {
             protected bool pinned;
             protected coordPair location;
-            protected MoveOffsets moveOffsets;
-            public coordPair[] returnMoveOffsets() {
-                calculateMoveOffsets();
-                return this.moveOffsets.moveOffsets; //oh god
-            }
-            public abstract void calculateMoveOffsets();
+            protected MoveOffsets[] moveOffsets;
+            public abstract void calculateDirections();
             public bool returnPin() { return this.pinned;}
             public void setPinned(bool pinned) { this.pinned = pinned; }
 
         }
         class Pawn : Piece {
             private bool isFirstMove;
-            public override void calculateMoveOffsets()
+            public override void calculateDirections()
             {
-                
+                moveOffsets = new MoveOffsets[1];
+                moveOffsets[0].moveDirection = directions.Up;
+                //maybe itll be smarter to initiate an array of objects moveOffset with each individual parameter
+                //rather than one object containing arrays, which is quite cumsy
             }
             public bool IsMyFirstMove() { return this.isFirstMove;}
         }
 
         class Rook : Piece {
-            public override void calculateMoveOffsets()
+            public override void calculateDirections()
             {
-                coordPair tempCoordPair;
+                moveOffsets = new MoveOffsets[4];
 
-                moveOffsets.moveOffsets = new coordPair[4];
-                moveOffsets.isRecurring = new bool[4];
+                for (int i = 0; i < 4; i++) { moveOffsets[i].isRecurring = true; }
 
-                for (int i = 0; i < 4; i++) { moveOffsets.isRecurring[i] = true; }
-
-                tempCoordPair.xOffset = 1;
-                tempCoordPair.yOffset = 0;
-                moveOffsets.moveOffsets[0] = tempCoordPair;
-                tempCoordPair.xOffset = 0;
-                tempCoordPair.yOffset = 1;
-                moveOffsets.moveOffsets[1] = tempCoordPair;
-                tempCoordPair.xOffset = -1;
-                tempCoordPair.yOffset = 0;
-                moveOffsets.moveOffsets[2] = tempCoordPair;
-                tempCoordPair.xOffset = 0;
-                tempCoordPair.yOffset = -1;
-                moveOffsets.moveOffsets[3] = tempCoordPair; //i hate this block with every fiber of my being
-                                                            //TO-DO: REPLACE THIS WITH DIRECTIONS IMPLEMENTATION
+                moveOffsets[0].moveDirection = directions.Up;
+                moveOffsets[1].moveDirection = directions.Right;
+                moveOffsets[2].moveDirection = directions.Down;
+                moveOffsets[3].moveDirection = directions.Left;
             }
         }
 
