@@ -1,0 +1,10 @@
+C:\Users\WIN11\source\repos\ChessC\ChessC\bin\Debug\ChessC.exe.config
+C:\Users\WIN11\source\repos\ChessC\ChessC\bin\Debug\ChessC.exe
+C:\Users\WIN11\source\repos\ChessC\ChessC\bin\Debug\ChessC.pdb
+C:\Users\WIN11\source\repos\ChessC\ChessC\obj\Debug\ChessC.csproj.AssemblyReference.cache
+C:\Users\WIN11\source\repos\ChessC\ChessC\obj\Debug\ChessC.Form1.resources
+C:\Users\WIN11\source\repos\ChessC\ChessC\obj\Debug\ChessC.Properties.Resources.resources
+C:\Users\WIN11\source\repos\ChessC\ChessC\obj\Debug\ChessC.csproj.GenerateResource.cache
+C:\Users\WIN11\source\repos\ChessC\ChessC\obj\Debug\ChessC.csproj.CoreCompileInputs.cache
+C:\Users\WIN11\source\repos\ChessC\ChessC\obj\Debug\ChessC.exe
+C:\Users\WIN11\source\repos\ChessC\ChessC\obj\Debug\ChessC.pdb
