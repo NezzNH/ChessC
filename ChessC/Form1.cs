@@ -37,6 +37,31 @@ namespace ChessC
             LeftUp
         }
 
+        public enum color { 
+            white,black
+        }
+
+        class Player {
+            private color plyrcolor;
+            Piece[] graveyard;
+            public Player() {
+                plyrcolor = color.white;
+                graveyard = new Piece[16];
+            }
+
+            public color getColor() { return this.plyrcolor; }
+            public void setColor(color plyrcolor) {  this.plyrcolor = plyrcolor; }
+        }
+        class Game
+        {
+            Player[] players;
+
+        }
+
+        class Match { 
+            
+        }
+
         public coordPair convertDirectionToOffset(directions direction)
         {
             coordPair tempCoordPair;
