@@ -43,23 +43,37 @@ namespace ChessC
 
         class Player {
             private color plyrcolor;
+            private int score, deadPieces;
             Piece[] graveyard;
             public Player() {
                 plyrcolor = color.white;
                 graveyard = new Piece[16];
+                deadPieces = 0;
+            }
+
+            public Player(color plyrcolor, int deadPieces = 0) {
+                this.plyrcolor = plyrcolor;
+                graveyard = new Piece[16];
+                this.deadPieces = deadPieces;
             }
 
             public color getColor() { return this.plyrcolor; }
             public void setColor(color plyrcolor) {  this.plyrcolor = plyrcolor; }
+            public int getScore() { return score; }
+            public void setScore(int score) { this.score = score; }
         }
-        class Game
-        {
+        class Match {
+            Board board;
             Player[] players;
 
-        }
-
-        class Match { 
-            
+            public Match() {
+                this.board = new Board();
+                this.players[0] = new Player(color.white);
+                this.players[1] = new Player(color.black);
+            }
+            public void initMatch() {
+                this.board = new Board();
+            }
         }
 
         public coordPair convertDirectionToOffset(directions direction)
@@ -117,16 +131,54 @@ namespace ChessC
         {
             private Label[,] DisplayFieldMatrix;
             private Field[,] FieldMatrix;
-            private Piece[] PieceArray;
-            private coordPair[] attackedFieldArray;
+            private Piece[] Pieces;
+            private coordPair[] attackedFields;
             public Board()
             {
                 this.DisplayFieldMatrix = new Label[8, 8];
-                PieceArray = new Piece[4];
+                Pieces = new Piece[32];
             }
-            public void setDisplayFieldMatrix(Label[,] DisplayFieldMatrix)
-            {
+            public void setDisplayFieldMatrix(Label[,] DisplayFieldMatrix) {
                 this.DisplayFieldMatrix = DisplayFieldMatrix;
+            }
+            public void initBoard() {
+                initPieces(); initFields();
+            }
+
+            private void initPieces()
+            {
+                coordPair tempPair;
+                tempPair.xOffset = 0;
+                tempPair.yOffset = 0;
+                Pieces[0] = new Rook(tempPair, color.white);
+                tempPair.xOffset = 1;
+                Pieces[1] = new Knight(tempPair, color.white);
+                tempPair.xOffset = 2;
+                Pieces[2] = new Bishop(tempPair, color.white);
+                tempPair.xOffset = 3;
+                Pieces[3] = new Queen(tempPair, color.white);
+                tempPair.xOffset = 4;
+                Pieces[4] = new King(tempPair, color.white);
+                tempPair.xOffset = 5;
+                Pieces[5] = new Bishop(tempPair, color.white);
+                tempPair.xOffset = 6;
+                Pieces[6] = new Knight(tempPair, color.white);
+                tempPair.xOffset = 7;
+                Pieces[7] = new Rook(tempPair, color.white);
+                tempPair.yOffset = 0;
+                for (int i = 0; i < 8; i++)
+                {
+                    tempPair.xOffset = i;
+                    Pieces[i] = new Pawn(tempPair, color.white);
+                }
+            }
+
+            private void initFields() {
+
+            }
+
+            public void updateFieldStatus() {
+                
             }
         }
 
@@ -136,6 +188,7 @@ namespace ChessC
             private coordPair location;
             private bool isWhite;
             private bool isAttacked;
+            private Piece pieceOnField;
             public Field(int normedFieldIndex)
             {
                 if (normedFieldIndex % 2 == 0) isWhite = false;
@@ -153,6 +206,28 @@ namespace ChessC
             protected bool pinned;
             protected coordPair location;
             protected MoveOffsets[] moveOffsets;
+            protected color pieceColor;
+            protected Piece(coordPair location, color pieceColor, bool pinned = false)
+            {
+                this.pinned = pinned;
+                this.location = location;
+                this.pieceColor = pieceColor;
+            }
+            protected Piece() {
+                this.pinned = false;
+                coordPair tempPair;
+                tempPair.xOffset = 0;
+                tempPair.yOffset = 0;
+                this.location = tempPair;
+                this.pieceColor = color.white;
+            }
+            public String getDebugInfo() {
+                String debugString;
+                
+                debugString = $"Location:{location.xOffset},{location.yOffset}; moveOffsets:{moveOffsets}, pieceColor:{pieceColor}, pinned:{pinned}";
+
+                return debugString;
+            }
             public abstract void calculateDirections();
             public bool returnPin() { return this.pinned; }
             public void setPinned(bool pinned) { this.pinned = pinned; }
@@ -161,15 +236,22 @@ namespace ChessC
         class Pawn : Piece
         {
             private bool isFirstMove;
+            public Pawn() : base() {}
+            public Pawn(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) {}
+
             public override void calculateDirections()
             {
                 moveOffsets = new MoveOffsets[1];
-                moveOffsets[0].moveDirection = directions.Up;
+                if (this.pieceColor == color.white) moveOffsets[0].moveDirection = directions.Up;
+                else moveOffsets[0].moveDirection = directions.Down;
             }
             public bool IsMyFirstMove() { return this.isFirstMove; }
         }
 
         class Bishop : Piece {
+
+            public Bishop(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+            public Bishop() : base() { }
             public override void calculateDirections()
             {
                 moveOffsets = new MoveOffsets[4];
@@ -184,6 +266,8 @@ namespace ChessC
         }
 
         class Queen : Piece {
+            public Queen(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+            public Queen() : base() { }
             public override void calculateDirections()
             {
                 moveOffsets = new MoveOffsets[8];
@@ -196,6 +280,8 @@ namespace ChessC
         }
 
         class Knight : Piece {
+            public Knight(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+            public Knight() : base() { }
             public override void calculateDirections()
             {
                 moveOffsets = new MoveOffsets[8];
@@ -224,6 +310,8 @@ namespace ChessC
         }
 
     class Rook : Piece {
+            public Rook(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+            public Rook() : base() { }
             public override void calculateDirections()
             {
                 moveOffsets = new MoveOffsets[4];
@@ -238,6 +326,8 @@ namespace ChessC
         }
 
         class King : Piece {
+            public King(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+            public King() : base() { }
             public override void calculateDirections()
             {
                 moveOffsets = new MoveOffsets[8];
@@ -256,6 +346,7 @@ namespace ChessC
 
             rookType = rookType.Substring(13, rookType.Length - 13); //differentiate types w/o additional memory req
             Debug.WriteLine(rookType);
+            Debug.WriteLine(rook.getDebugInfo());
         }
     }
 }
