@@ -22,7 +22,7 @@ namespace ChessC
 
         public struct coordPair
         {
-            public int xOffset, yOffset;
+            public int collumn, row;
         };
 
         public enum directions
@@ -62,19 +62,6 @@ namespace ChessC
             public int getScore() { return score; }
             public void setScore(int score) { this.score = score; }
         }
-        class Match {
-            Board board;
-            Player[] players;
-
-            public Match() {
-                this.board = new Board();
-                this.players[0] = new Player(color.white);
-                this.players[1] = new Player(color.black);
-            }
-            public void initMatch() {
-                this.board = new Board();
-            }
-        }
 
         public coordPair convertDirectionToOffset(directions direction)
         {
@@ -82,40 +69,40 @@ namespace ChessC
             switch (direction)
             {
                 case directions.Up:
-                    tempCoordPair.xOffset = 0;
-                    tempCoordPair.yOffset = 1;
+                    tempCoordPair.collumn = 0;
+                    tempCoordPair.row = 1;
                     break;
                 case directions.UpRight:
-                    tempCoordPair.xOffset = 1;
-                    tempCoordPair.yOffset = 1;
+                    tempCoordPair.collumn = 1;
+                    tempCoordPair.row = 1;
                     break;
                 case directions.Right:
-                    tempCoordPair.xOffset = 1;
-                    tempCoordPair.yOffset = 0;
+                    tempCoordPair.collumn = 1;
+                    tempCoordPair.row = 0;
                     break;
                 case directions.RightDown:
-                    tempCoordPair.xOffset = 1;
-                    tempCoordPair.yOffset = -1;
+                    tempCoordPair.collumn = 1;
+                    tempCoordPair.row = -1;
                     break;
                 case directions.Down:
-                    tempCoordPair.xOffset = 0;
-                    tempCoordPair.yOffset = -1;
+                    tempCoordPair.collumn = 0;
+                    tempCoordPair.row = -1;
                     break;
                 case directions.DownLeft:
-                    tempCoordPair.xOffset = -1;
-                    tempCoordPair.yOffset = -1;
+                    tempCoordPair.collumn = -1;
+                    tempCoordPair.row = -1;
                     break;
                 case directions.Left:
-                    tempCoordPair.xOffset = -1;
-                    tempCoordPair.yOffset = 0;
+                    tempCoordPair.collumn = -1;
+                    tempCoordPair.row = 0;
                     break;
                 case directions.LeftUp:
-                    tempCoordPair.xOffset = -1;
-                    tempCoordPair.yOffset = 1;
+                    tempCoordPair.collumn = -1;
+                    tempCoordPair.row = 1;
                     break;
                 default:
-                    tempCoordPair.xOffset = 0;
-                    tempCoordPair.yOffset = 0;
+                    tempCoordPair.collumn = 0;
+                    tempCoordPair.row = 0;
                     break;
             }
             return tempCoordPair;
@@ -130,8 +117,8 @@ namespace ChessC
         class Board
         {
             private Label[,] DisplayFieldMatrix;
-            private Field[,] FieldMatrix;
-            private Piece[] Pieces;
+            private Field[,] Fields = new Field[8, 8];
+            private Piece[] Pieces = new Piece[32];
             private coordPair[] attackedFields;
             public Board()
             {
@@ -148,55 +135,118 @@ namespace ChessC
             private void initPieces()
             {
                 coordPair tempPair;
-                tempPair.xOffset = 0;
-                tempPair.yOffset = 0;
+                tempPair.collumn = 0;
+                tempPair.row = 0;
                 Pieces[0] = new Rook(tempPair, color.white);
-                tempPair.xOffset = 1;
+                tempPair.collumn = 1;
                 Pieces[1] = new Knight(tempPair, color.white);
-                tempPair.xOffset = 2;
+                tempPair.collumn = 2;
                 Pieces[2] = new Bishop(tempPair, color.white);
-                tempPair.xOffset = 3;
+                tempPair.collumn = 3;
                 Pieces[3] = new Queen(tempPair, color.white);
-                tempPair.xOffset = 4;
+                tempPair.collumn = 4;
                 Pieces[4] = new King(tempPair, color.white);
-                tempPair.xOffset = 5;
+                tempPair.collumn = 5;
                 Pieces[5] = new Bishop(tempPair, color.white);
-                tempPair.xOffset = 6;
+                tempPair.collumn = 6;
                 Pieces[6] = new Knight(tempPair, color.white);
-                tempPair.xOffset = 7;
+                tempPair.collumn = 7;
                 Pieces[7] = new Rook(tempPair, color.white);
-                tempPair.yOffset = 0;
+                tempPair.row = 1;
                 for (int i = 0; i < 8; i++)
                 {
-                    tempPair.xOffset = i;
-                    Pieces[i] = new Pawn(tempPair, color.white);
+                    tempPair.collumn = i;
+                    Pieces[i+8] = new Pawn(tempPair, color.white);
                 }
+                tempPair.row = 6;
+                for (int i = 0; i < 8; i++)
+                {
+                    tempPair.collumn = i;
+                    Pieces[i+16] = new Pawn(tempPair, color.black);
+                }
+                tempPair.row = 7;
+                tempPair.collumn = 0;
+                Pieces[24] = new Rook(tempPair, color.black);
+                tempPair.collumn = 1;
+                Pieces[25] = new Knight(tempPair, color.black);
+                tempPair.collumn = 2;
+                Pieces[26] = new Bishop(tempPair, color.black);
+                tempPair.collumn = 3;
+                Pieces[27] = new Queen(tempPair, color.black);
+                tempPair.collumn = 4;
+                Pieces[28] = new King(tempPair, color.black);
+                tempPair.collumn = 5;
+                Pieces[29] = new Bishop(tempPair, color.black);
+                tempPair.collumn = 6;
+                Pieces[30] = new Knight(tempPair, color.black);
+                tempPair.collumn = 7;
+                Pieces[31] = new Rook(tempPair, color.black);
             }
 
             private void initFields() {
-
+                int row, collumn;
+                coordPair tempPair;
+                for (int i = 0; i < 64; i++)
+                {
+                    collumn = i % 8; row = i / 8;
+                    color colorBuffer;
+                    if (i % 2 != 0) colorBuffer = color.white;
+                    else colorBuffer = color.black;
+                    Fields[row, collumn] = new Field(i, colorBuffer);
+                }
+                for (int i = 0; i < Pieces.Length; i++)
+                {
+                    tempPair = Pieces[i].getLocation();
+                    Fields[tempPair.row, tempPair.collumn].setPiece(Pieces[i]);
+                }
             }
 
             public void updateFieldStatus() {
                 
+            } //requires variable LastUpdatedPiece, or some other approach
+
+            private String returnPieceSymbol(Piece inputPiece) {
+                if (inputPiece == null) return "";
+                String pieceType = inputPiece.GetType().Name;
+                return pieceType.Substring(0, 1);
             }
+
+            public void renderFields() {
+                int collumn, row;
+                for (int i = 0; i < 64; i++) {
+                    collumn = i % 8; row = i / 8;
+                    if (Fields[row, collumn].getColor() == color.white) DisplayFieldMatrix[row, collumn].BackColor = Color.White;
+                    else {
+                        DisplayFieldMatrix[row, collumn].BackColor = Color.Black;
+                        DisplayFieldMatrix[row, collumn].ForeColor = Color.White;
+                    }
+                }
+                for (int i = 0; i < 64; i++) {
+                    collumn = i % 8; row = i / 8; //again, this would be consolidated in one for loop if this were to remain one function
+                    DisplayFieldMatrix[row, collumn].Text = returnPieceSymbol(Fields[row, collumn].getPiece());
+                }
+            } //TO-DO: move this to a new function in the future (after testing) that only gets run on Form1.Load
+
         }
 
         class Field
         {
             private bool isOccupied;
             private coordPair location;
-            private bool isWhite;
+            private color fieldColor;
             private bool isAttacked;
             private Piece pieceOnField;
-            public Field(int normedFieldIndex)
+            public Field(int normedFieldIndex, color fieldColor)
             {
-                if (normedFieldIndex % 2 == 0) isWhite = false;
-                else isWhite = true;
-                isOccupied = false;
+                location.collumn = normedFieldIndex % 8;
+                location.row = normedFieldIndex / 8;
+                this.fieldColor = fieldColor;
             }
             public void changeOccupancy(bool inputOccupancy) { this.isOccupied = inputOccupancy; }
             public bool returnOccupancy() { return this.isOccupied; }
+            public Piece getPiece() { return this.pieceOnField; }
+            public void setPiece(Piece pieceOnField) { this.pieceOnField = pieceOnField; }
+            public color getColor() { return this.fieldColor; }
         }
 
         abstract class Piece
@@ -216,18 +266,19 @@ namespace ChessC
             protected Piece() {
                 this.pinned = false;
                 coordPair tempPair;
-                tempPair.xOffset = 0;
-                tempPair.yOffset = 0;
+                tempPair.collumn = 0;
+                tempPair.row = 0;
                 this.location = tempPair;
                 this.pieceColor = color.white;
             }
             public String getDebugInfo() {
                 String debugString;
                 
-                debugString = $"Location:{location.xOffset},{location.yOffset}; moveOffsets:{moveOffsets}, pieceColor:{pieceColor}, pinned:{pinned}";
+                debugString = $"Location:{location.collumn},{location.row}; moveOffsets:{moveOffsets}, pieceColor:{pieceColor}, pinned:{pinned}";
 
                 return debugString;
             }
+            public coordPair getLocation() { return this.location; }
             public abstract void calculateDirections();
             public bool returnPin() { return this.pinned; }
             public void setPinned(bool pinned) { this.pinned = pinned; }
@@ -290,21 +341,21 @@ namespace ChessC
 
                 coordPair tempPair;
 
-                tempPair.xOffset = 1; tempPair.yOffset = 2;
+                tempPair.collumn = 1; tempPair.row = 2;
                 moveOffsets[0].moveOffset = tempPair;
-                tempPair.xOffset = -1; tempPair.yOffset = 2;
+                tempPair.collumn = -1; tempPair.row = 2;
                 moveOffsets[1].moveOffset = tempPair;
-                tempPair.xOffset = 2; tempPair.yOffset = 1;
+                tempPair.collumn = 2; tempPair.row = 1;
                 moveOffsets[2].moveOffset = tempPair;
-                tempPair.xOffset = -2; tempPair.yOffset = 1;
+                tempPair.collumn = -2; tempPair.row = 1;
                 moveOffsets[3].moveOffset = tempPair;
-                tempPair.xOffset = 2; tempPair.yOffset = -1;
+                tempPair.collumn = 2; tempPair.row = -1;
                 moveOffsets[4].moveOffset = tempPair;
-                tempPair.xOffset = -2; tempPair.yOffset = -1;
+                tempPair.collumn = -2; tempPair.row = -1;
                 moveOffsets[5].moveOffset = tempPair;
-                tempPair.xOffset = -1; tempPair.yOffset = -2;
+                tempPair.collumn = -1; tempPair.row = -2;
                 moveOffsets[6].moveOffset = tempPair;
-                tempPair.xOffset = 1; tempPair.yOffset = -2;
+                tempPair.collumn = 1; tempPair.row = -2;
                 moveOffsets[7].moveOffset = tempPair;
             }
         }
@@ -341,10 +392,24 @@ namespace ChessC
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            Rook rook = new Rook();
-            String rookType = Convert.ToString(rook.GetType()); //ChessC.Form1+Rook
+            Label[,] displayFieldMatrix = { {a1, a2, a3, a4, a5, a6, a7, a8 },
+                                            {b1, b2, b3, b4, b5, b6, b7, b8 },
+                                            {c1, c2, c3, c4, c5, c6, c7, c8 },
+                                            {d1, d2, d3, d4, d5, d6, d7, d8 },
+                                            {e1, e2, e3, e4, e5, e6, e7, e8 },
+                                            {f1, f2, f3, f4, f5, f6, f7, f8 },
+                                            {g1, g2, g3, g4, g5, g6, g7, g8 },
+                                            {h1, h2, h3, h4, h5, h6, h7, h8 } }; //is flipped around the row axis
 
-            rookType = rookType.Substring(13, rookType.Length - 13); //differentiate types w/o additional memory req
+            Board board = new Board();
+            board.setDisplayFieldMatrix(displayFieldMatrix);
+
+            board.initBoard();
+            board.renderFields();
+
+            Rook rook = new Rook();
+            String rookType = Convert.ToString(rook.GetType().Name); //Rook
+
             Debug.WriteLine(rookType);
             Debug.WriteLine(rook.getDebugInfo());
         }
