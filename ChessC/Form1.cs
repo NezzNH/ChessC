@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ChessC.DataTypes;
 using ChessC.Pieces;
+using ChessC.Util;
 
 namespace ChessC
 {
@@ -22,51 +23,11 @@ namespace ChessC
             InitializeComponent();
         }
 
-        public coordPair convertDirectionToOffset(directions direction)
-        {
-            coordPair tempCoordPair;
-            switch (direction)
-            {
-                case directions.Up:
-                    tempCoordPair.collumn = 0;
-                    tempCoordPair.row = 1;
-                    break;
-                case directions.UpRight:
-                    tempCoordPair.collumn = 1;
-                    tempCoordPair.row = 1;
-                    break;
-                case directions.Right:
-                    tempCoordPair.collumn = 1;
-                    tempCoordPair.row = 0;
-                    break;
-                case directions.RightDown:
-                    tempCoordPair.collumn = 1;
-                    tempCoordPair.row = -1;
-                    break;
-                case directions.Down:
-                    tempCoordPair.collumn = 0;
-                    tempCoordPair.row = -1;
-                    break;
-                case directions.DownLeft:
-                    tempCoordPair.collumn = -1;
-                    tempCoordPair.row = -1;
-                    break;
-                case directions.Left:
-                    tempCoordPair.collumn = -1;
-                    tempCoordPair.row = 0;
-                    break;
-                case directions.LeftUp:
-                    tempCoordPair.collumn = -1;
-                    tempCoordPair.row = 1;
-                    break;
-                default:
-                    tempCoordPair.collumn = 0;
-                    tempCoordPair.row = 0;
-                    break;
-            }
-            return tempCoordPair;
-        }
-
+        public coordPair convertIndexToCoords(int input) {
+            coordPair tempPair;
+            tempPair.row = input / 8;tempPair.collumn = input % 8;
+            return tempPair;
+        } //possibly belongs in Board
         private void Form1_Load(object sender, EventArgs e)
         {
             Label[,] displayFieldMatrix = { {a1, b1, c1, d1, e1, f1, g1, h1 },
@@ -79,15 +40,18 @@ namespace ChessC
                                             {a8, b8, c8, d8, e8, f8, g8, h8 } }; //is flipped around the row axis
 
             Board board = new Board();
+            MoveHandler moveHandler = new MoveHandler();
             board.setDisplayFieldMatrix(displayFieldMatrix);
 
             board.initBoard();
             board.renderFields();
         }
 
+        //all this reorganization leaves us with only form related functions and init in this file. yay :3
+
         private void h1_Click(object sender, EventArgs e)
         {
-
+            
         }
     }
 }

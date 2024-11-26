@@ -51,6 +51,8 @@
     <Compile Include="DataTypes\MoveOffsets.cs" />
     <Compile Include="DataTypes\Player.cs" />
     <Compile Include="DataTypes\PrimaryTypes.cs" />
+    <Compile Include="Util\DataHandler.cs" />
+    <Compile Include="Util\MoveHandler.cs" />
     <Compile Include="Pieces\Bishop.cs" />
     <Compile Include="Pieces\King.cs" />
     <Compile Include="Pieces\Knight.cs" />

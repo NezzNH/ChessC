@@ -15,6 +15,8 @@ namespace ChessC.DataTypes
         private Label[,] DisplayFieldMatrix;
         private Field[,] Fields = new Field[8, 8];
         private Piece[] PieceArray = new Piece[32];
+        private Piece LastUpdatedPiece;
+        private LinkedList<String> allMoves = new LinkedList<String>();
         private coordPair[] attackedFields;
         public Board()
         {
@@ -27,7 +29,17 @@ namespace ChessC.DataTypes
         }
         public void initBoard()
         {
-            initPieceArray(); initFields();
+            initPieceArray(); initFields(); setupFieldColors();
+        }
+
+        public bool getMoveLegality(coordPair requestedCoords) {
+            Field referencedField = Fields[requestedCoords.row, requestedCoords.collumn];
+
+            Piece reqeustorPiece = this.LastUpdatedPiece;
+            bool result = false;
+            result = (!referencedField.returnOccupancy() && ()
+
+
         }
 
         private void initPieceArray()
@@ -123,34 +135,34 @@ namespace ChessC.DataTypes
         {
             if (inputPiece == null) return "";
             String pieceType = inputPiece.GetType().Name;
-            switch (pieceType)
-            {
-                case "Knight":
-                    return "k";
-                default:
-                    return pieceType.Substring(0, 1);
-            }
+            if (pieceType == "Knight") return "k";
+            else return pieceType.Substring(0, 1); //no need to use a switch here...
         }
 
+        private void setupFieldColors() {
+            int collumn, row;
+            for (int i = 0; i < 64; i++)
+            {
+                collumn = i % 8; row = i / 8;   
+                if (Fields[row, collumn].getColor() == color.white) DisplayFieldMatrix[row, collumn].BackColor = Color.Wheat;
+                else DisplayFieldMatrix[row, collumn].BackColor = Color.SaddleBrown;
+
+            }
+        }
         public void renderFields()
         {
             int collumn, row;
             Piece tempPiece;
+           
             for (int i = 0; i < 64; i++)
             {
                 collumn = i % 8; row = i / 8;
                 tempPiece = Fields[row, collumn].getPiece();
-                if (Fields[row, collumn].getColor() == color.white) DisplayFieldMatrix[row, collumn].BackColor = Color.Wheat;
-                else DisplayFieldMatrix[row, collumn].BackColor = Color.SaddleBrown;
                 if (tempPiece != null)
                 {
                     if (tempPiece.getColor() == color.white) DisplayFieldMatrix[row, collumn].ForeColor = Color.White;
                     else DisplayFieldMatrix[row, collumn].ForeColor = Color.Black;
                 }
-            } //TO-DO: move this part to a new function in the future (after testing) that only gets run on Form1.Load
-            for (int i = 0; i < 64; i++)
-            {
-                collumn = i % 8; row = i / 8; //again, this would be consolidated in one for loop if this were to remain one function
                 DisplayFieldMatrix[row, collumn].Text = returnPieceSymbol(Fields[row, collumn].getPiece());
             }
         }
