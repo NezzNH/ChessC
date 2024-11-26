@@ -16,11 +16,12 @@ namespace ChessC.Pieces
         protected MoveOffsets[] moveOffsets;
         protected coordPair[] possibleMoveLocations;
         protected color pieceColor;
-        protected Piece(coordPair location, color pieceColor, bool pinned = false)
+        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true)
         {
             this.pinned = pinned;
             this.location = location;
             this.pieceColor = pieceColor;
+            this.isRecurringMovePiece = isRecurringMovePiece;
         }
         protected Piece()
         {
@@ -30,6 +31,7 @@ namespace ChessC.Pieces
             tempPair.row = 0;
             this.location = tempPair;
             this.pieceColor = color.white;
+            this.isRecurringMovePiece = true;
         }
 
         private coordPair convertDirectionToOffset(directions direction)
@@ -92,33 +94,35 @@ namespace ChessC.Pieces
 
         public coordPair[] returnAllPossibleMoves() {
             List<coordPair> moveLocations = new List<coordPair>();
-            if (isRecurringMovePiece) {
+            if (isRecurringMovePiece)
+            {
                 bool[] rayDepletionArray = new bool[moveOffsets.Length];
-                for (int i = 0; i < moveOffsets.Length; i++) rayDepletionArray[i] = false; //TO-DO : PROBABLY REDUNDANT
                 int offset = 0, depletedRayCounter = 0;
                 bool areAllRaysDepleted = false;
                 coordPair rayLoc, tempDisp;
-                while (!areAllRaysDepleted) {
-                    for (int i = 0; i < moveOffsets.Length; i++) {
+
+                while (!areAllRaysDepleted)
+                {
+                    for (int i = 0; i < moveOffsets.Length; i++)
+                    {
                         rayLoc = location;
                         if (!rayDepletionArray[i])
                         {
                             tempDisp = convertDirectionToOffset(moveOffsets[i].moveDirection);
                             rayLoc.row += tempDisp.row * offset;
                             rayLoc.collumn += tempDisp.collumn * offset;
-                            if (isWithinBounds(rayLoc))
-                            {
-                                moveLocations.Add(rayLoc);
-                            }
+
+                            if (isWithinBounds(rayLoc)) moveLocations.Add(rayLoc);
                             else rayDepletionArray[i] = true; // true means ray is depleted
                         }
                         else depletedRayCounter++;
                     }
-                    if (depletedRayCounter == 8) areAllRaysDepleted = true;
+                    if (depletedRayCounter == moveOffsets.Length) areAllRaysDepleted = true;
                     else offset++;
                 }
             }
-
+            else for (int i = 0; i < moveOffsets.Length; i++) moveLocations.Add(moveOffsets[i].moveOffset); //in the cases of pawn or knight
+            
             int finalArraySize = moveLocations.Count;
             coordPair[] finalArray = new coordPair[finalArraySize];
             finalArray = moveLocations.ToArray();

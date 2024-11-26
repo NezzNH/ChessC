@@ -32,14 +32,12 @@ namespace ChessC.DataTypes
             initPieceArray(); initFields(); setupFieldColors();
         }
 
-        public bool getMoveLegality(coordPair requestedCoords) {
+        public bool getMoveLegality(coordPair requestedCoords, Piece inputPiece) { //TO-DO decide whether selected piece will be held, or it should be passed along with each function
             Field referencedField = Fields[requestedCoords.row, requestedCoords.collumn];
+            Piece reqPiece = inputPiece;
 
-            Piece reqeustorPiece = this.LastUpdatedPiece;
-            bool result = false;
-            result = (!referencedField.returnOccupancy() && ()
-
-
+            if (!referencedField.returnOccupancy() && (referencedField.getPiece().getColor() != inputPiece.getColor())) return true;
+            else return false;
         }
 
         private void initPieceArray()

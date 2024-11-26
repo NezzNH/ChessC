@@ -9,7 +9,7 @@ namespace ChessC.Pieces
 {
     class Knight : Piece
     {
-        public Knight(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+        public Knight(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = false) : base(location, pieceColor, pinned, isRecurringMovePiece) { }
         public Knight() : base() { }
         public override void calculateDirections()
         {

@@ -9,7 +9,7 @@ namespace ChessC.Pieces
 {
     class Rook : Piece
     {
-        public Rook(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+        public Rook(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true) : base(location, pieceColor, pinned, isRecurringMovePiece ) { }
         public Rook() : base() { }
         public override void calculateDirections()
         {

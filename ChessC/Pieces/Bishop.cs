@@ -9,7 +9,7 @@ namespace ChessC.Pieces
 {
     class Bishop : Piece
     {
-        public Bishop(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+        public Bishop(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true) : base(location, pieceColor, pinned, isRecurringMovePiece) { }
         public Bishop() : base() { }
         public override void calculateDirections()
         {

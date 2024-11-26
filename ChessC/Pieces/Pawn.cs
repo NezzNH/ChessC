@@ -11,7 +11,7 @@ namespace ChessC.Pieces
     {
         private bool isFirstMove;
         public Pawn() : base() { }
-        public Pawn(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+        public Pawn(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = false) : base(location, pieceColor, pinned, isRecurringMovePiece) { }
 
         public override void calculateDirections()
         {

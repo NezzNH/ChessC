@@ -12,7 +12,7 @@ namespace ChessC.Pieces
     class Queen : Piece
     {
         const int COORDPAIR_SIZE = 50; //TEMPORARY, AUGMENT BASED ON POS USING SEARCH FUNC AND RAY COLL
-        public Queen(coordPair location, color pieceColor, bool pinned = false) : base(location, pieceColor, pinned) { }
+        public Queen(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true) : base(location, pieceColor, pinned, isRecurringMovePiece) { }
         public Queen() : base() { }
         public override void calculateDirections()
         {

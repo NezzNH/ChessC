@@ -25,7 +25,7 @@ namespace ChessC
 
         public coordPair convertIndexToCoords(int input) {
             coordPair tempPair;
-            tempPair.row = input / 8;tempPair.collumn = input % 8;
+            tempPair.row = input / 8; tempPair.collumn = input % 8;
             return tempPair;
         } //possibly belongs in Board
         private void Form1_Load(object sender, EventArgs e)
@@ -40,7 +40,6 @@ namespace ChessC
                                             {a8, b8, c8, d8, e8, f8, g8, h8 } }; //is flipped around the row axis
 
             Board board = new Board();
-            MoveHandler moveHandler = new MoveHandler();
             board.setDisplayFieldMatrix(displayFieldMatrix);
 
             board.initBoard();

@@ -8,12 +8,5 @@ using ChessC.Pieces;
 
 namespace ChessC.Util
 {
-    class MoveHandler
-    {
-        coordPair moveReqCoord;
-
-        public void requestMove(coordPair moveReqCoord) { 
-            
-        }
-    }
+    
 }
