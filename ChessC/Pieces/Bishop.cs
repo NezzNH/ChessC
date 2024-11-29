@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using ChessC.DataTypes;
@@ -13,14 +14,18 @@ namespace ChessC.Pieces
         public Bishop() : base() { }
         public override void calculateDirections()
         {
-            moveOffsets = new MoveOffsets[4];
 
-            for (int i = 0; i < 4; i++) moveOffsets[i].isRecurring = true;
+            MoveOffsets tempOffset = new MoveOffsets();
+            tempOffset.isRecurring = true;
 
-            moveOffsets[0].moveDirection = directions.UpRight;
-            moveOffsets[1].moveDirection = directions.RightDown;
-            moveOffsets[2].moveDirection = directions.DownLeft;
-            moveOffsets[3].moveDirection = directions.LeftUp;
+            tempOffset.moveDirection = directions.UpRight;
+            moveOffsets.Add(tempOffset);
+            tempOffset.moveDirection = directions.RightDown;
+            moveOffsets.Add(tempOffset);
+            tempOffset.moveDirection = directions.DownLeft;
+            moveOffsets.Add(tempOffset);
+            tempOffset.moveDirection = directions.LeftUp;
+            moveOffsets.Add(tempOffset);
         }
     }
 }

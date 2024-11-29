@@ -11,20 +11,27 @@ namespace ChessC.Pieces
     {
         protected directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
                                                               directions.Down, directions.DownLeft, directions.Left, directions.LeftUp}; //temp for queen writing convention
-        protected bool pinned, isRecurringMovePiece;
+        protected bool pinned, isRecurringMovePiece, moveCalcIsUpdated;
         protected coordPair location;
-        protected MoveOffsets[] moveOffsets;
+        protected List<MoveOffsets> moveOffsets;
         protected coordPair[] possibleMoveLocations;
         protected color pieceColor;
-        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true)
+        protected coordPair dimensions;
+        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = false)
         {
             this.pinned = pinned;
             this.location = location;
             this.pieceColor = pieceColor;
+            this.dimensions.row = 8;
+            this.dimensions.collumn = 8;
             this.isRecurringMovePiece = isRecurringMovePiece;
+            this.moveOffsets = new List<MoveOffsets>();
+            this.calculateDirections();
+            this.moveCalcIsUpdated = moveCalcIsUpdated;
         }
         protected Piece()
         {
+            this.moveOffsets = new List<MoveOffsets>();
             this.pinned = false;
             coordPair tempPair;
             tempPair.collumn = 0;
@@ -32,6 +39,10 @@ namespace ChessC.Pieces
             this.location = tempPair;
             this.pieceColor = color.white;
             this.isRecurringMovePiece = true;
+            tempPair.collumn = 8; tempPair.row = 8;
+            this.dimensions = tempPair;
+            this.calculateDirections();
+            this.moveCalcIsUpdated = false;
         }
 
         private coordPair convertDirectionToOffset(directions direction)
@@ -87,23 +98,24 @@ namespace ChessC.Pieces
             return debugString;
         }
 
-        private bool isWithinBounds(coordPair input) {
-            if (input.row > 7 || input.row < 0 || input.collumn > 7 || input.collumn < 0) return false;
+        protected bool isWithinBounds(coordPair input) {
+            if (input.row > dimensions.row-1 || input.row < 0 || input.collumn > dimensions.collumn-1 || input.collumn < 0) return false;
             else return true;
         }
 
         public coordPair[] returnAllPossibleMoves() {
+            if (possibleMoveLocations != null || moveCalcIsUpdated == false) return possibleMoveLocations;
             List<coordPair> moveLocations = new List<coordPair>();
             if (isRecurringMovePiece)
             {
-                bool[] rayDepletionArray = new bool[moveOffsets.Length];
+                bool[] rayDepletionArray = new bool[moveOffsets.Count];
                 int offset = 0, depletedRayCounter = 0;
                 bool areAllRaysDepleted = false;
                 coordPair rayLoc, tempDisp;
 
                 while (!areAllRaysDepleted)
                 {
-                    for (int i = 0; i < moveOffsets.Length; i++)
+                    for (int i = 0; i < moveOffsets.Count; i++)
                     {
                         rayLoc = location;
                         if (!rayDepletionArray[i])
@@ -117,16 +129,32 @@ namespace ChessC.Pieces
                         }
                         else depletedRayCounter++;
                     }
-                    if (depletedRayCounter == moveOffsets.Length) areAllRaysDepleted = true;
+                    if (depletedRayCounter == moveOffsets.Count) areAllRaysDepleted = true;
                     else offset++;
                 }
             }
-            else for (int i = 0; i < moveOffsets.Length; i++) moveLocations.Add(moveOffsets[i].moveOffset); //in the cases of pawn or knight
+            else {
+                coordPair hitLoc;
+                for (int i = 0; i < moveOffsets.Count; i++)
+                {
+                    hitLoc = location;
+                    hitLoc.row += moveOffsets[i].moveOffset.row;
+                    hitLoc.collumn += moveOffsets[i].moveOffset.collumn;
+                    if (isWithinBounds(hitLoc)) moveLocations.Add(hitLoc);
+                }
+            }
             
             int finalArraySize = moveLocations.Count;
             coordPair[] finalArray = new coordPair[finalArraySize];
             finalArray = moveLocations.ToArray();
+            moveCalcIsUpdated = false;
+            possibleMoveLocations = finalArray; //hold a copy in case the user requests the moves again and the piece hasnt moved
             return finalArray;
+        }
+
+        public coordPair[] returnMoveAttemptDebug() {
+            coordPair[] testArray = returnAllPossibleMoves();
+            return testArray;
         }
         public coordPair getLocation() { return this.location; }
         public abstract void calculateDirections();
@@ -135,5 +163,4 @@ namespace ChessC.Pieces
         public void setColor(color color) { this.pieceColor = color; }
         public color getColor() { return this.pieceColor; }
     }
-
 }

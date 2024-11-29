@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataTypes\Board.cs" />
+    <Compile Include="DataTypes\Constants.cs" />
     <Compile Include="DataTypes\Field.cs" />
     <Compile Include="DataTypes\MoveOffsets.cs" />
     <Compile Include="DataTypes\Player.cs" />

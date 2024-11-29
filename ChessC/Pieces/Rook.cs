@@ -13,14 +13,13 @@ namespace ChessC.Pieces
         public Rook() : base() { }
         public override void calculateDirections()
         {
-            moveOffsets = new MoveOffsets[4];
+            MoveOffsets tempOffset = new MoveOffsets();
+            tempOffset.isRecurring = true;
 
-            for (int i = 0; i < 4; i++) { moveOffsets[i].isRecurring = true; }
-
-            moveOffsets[0].moveDirection = directions.Up;
-            moveOffsets[1].moveDirection = directions.Right;
-            moveOffsets[2].moveDirection = directions.Down;
-            moveOffsets[3].moveDirection = directions.Left;
+            for (int i = 0; i < 8; i += 2) {
+                tempOffset.moveDirection = tempDirectionsGlobalArray[i];
+                moveOffsets.Add(tempOffset);
+            }
         }
     }
 }

@@ -16,12 +16,13 @@ namespace ChessC.Pieces
         public Queen() : base() { }
         public override void calculateDirections()
         {
-            moveOffsets = new MoveOffsets[8];
+            MoveOffsets tempOffset = new MoveOffsets();
+            tempOffset.isRecurring = true;
 
             for (int i = 0; i < 8; i++)
             {
-                moveOffsets[i].isRecurring = true;
-                moveOffsets[i].moveDirection = tempDirectionsGlobalArray[i];
+                tempOffset.moveDirection = tempDirectionsGlobalArray[i];
+                moveOffsets.Add(tempOffset);
             }
         }
     }

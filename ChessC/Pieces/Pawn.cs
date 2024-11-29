@@ -15,9 +15,10 @@ namespace ChessC.Pieces
 
         public override void calculateDirections()
         {
-            moveOffsets = new MoveOffsets[1];
-            if (this.pieceColor == color.white) moveOffsets[0].moveDirection = directions.Up;
-            else moveOffsets[0].moveDirection = directions.Down;
+            MoveOffsets tempOffset = new MoveOffsets();
+            if (this.pieceColor == color.white) tempOffset.moveDirection = directions.Up;
+            else tempOffset.moveDirection = directions.Down;
+            moveOffsets.Add(tempOffset);
         }
         public bool IsMyFirstMove() { return this.isFirstMove; }
     }

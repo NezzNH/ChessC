@@ -23,9 +23,11 @@ namespace ChessC
             InitializeComponent();
         }
 
+        Board board = new Board();
+
         public coordPair convertIndexToCoords(int input) {
             coordPair tempPair;
-            tempPair.row = input / 8; tempPair.collumn = input % 8;
+            tempPair.row = input / Constants.BOARD_ROW_COUNT; tempPair.collumn = input % Constants.BOARD_COLLUMN_COUNT;
             return tempPair;
         } //possibly belongs in Board
         private void Form1_Load(object sender, EventArgs e)
@@ -39,7 +41,7 @@ namespace ChessC
                                             {a7, b7, c7, d7, e7, f7, g7, h7 },
                                             {a8, b8, c8, d8, e8, f8, g8, h8 } }; //is flipped around the row axis
 
-            Board board = new Board();
+            
             board.setDisplayFieldMatrix(displayFieldMatrix);
 
             board.initBoard();
@@ -50,7 +52,7 @@ namespace ChessC
 
         private void h1_Click(object sender, EventArgs e)
         {
-            
+            board.receiveClick(convertIndexToCoords(7));
         }
     }
 }

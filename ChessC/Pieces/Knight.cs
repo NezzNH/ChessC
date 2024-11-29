@@ -1,5 +1,7 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,32 +11,36 @@ namespace ChessC.Pieces
 {
     class Knight : Piece
     {
-        public Knight(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = false) : base(location, pieceColor, pinned, isRecurringMovePiece) { }
+        public Knight(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = false) : base(location, pieceColor, pinned, isRecurringMovePiece) {
+        }
         public Knight() : base() { }
         public override void calculateDirections()
         {
-            moveOffsets = new MoveOffsets[8];
-
-            for (int i = 0; i < 8; i++) moveOffsets[i].isRecurring = false;
-
             coordPair tempPair;
 
             tempPair.collumn = 1; tempPair.row = 2;
-            moveOffsets[0].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
+
             tempPair.collumn = -1; tempPair.row = 2;
-            moveOffsets[1].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
+
             tempPair.collumn = 2; tempPair.row = 1;
-            moveOffsets[2].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
+
             tempPair.collumn = -2; tempPair.row = 1;
-            moveOffsets[3].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
+
             tempPair.collumn = 2; tempPair.row = -1;
-            moveOffsets[4].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
+
             tempPair.collumn = -2; tempPair.row = -1;
-            moveOffsets[5].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
+
             tempPair.collumn = -1; tempPair.row = -2;
-            moveOffsets[6].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
+
             tempPair.collumn = 1; tempPair.row = -2;
-            moveOffsets[7].moveOffset = tempPair;
+            moveOffsets.Add(new MoveOffsets(directions.Up, tempPair, false));
         }
     }
 }

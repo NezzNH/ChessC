@@ -10,18 +10,22 @@ using System.Drawing;
 
 namespace ChessC.DataTypes
 {
+    
     class Board
     {
+        
         private Label[,] DisplayFieldMatrix;
         private Field[,] Fields = new Field[8, 8];
         private Piece[] PieceArray = new Piece[32];
         private Piece LastUpdatedPiece;
         private LinkedList<String> allMoves = new LinkedList<String>();
         private coordPair[] attackedFields;
+        private coordPair dimensions;
         public Board()
         {
-            this.DisplayFieldMatrix = new Label[8, 8];
             PieceArray = new Piece[32];
+            dimensions.row = 8; dimensions.collumn = 8;
+            this.DisplayFieldMatrix = new Label[dimensions.row, dimensions.collumn]; //we'll need a way to generate labels in the gui dynamically with board dimensions
         }
         public void setDisplayFieldMatrix(Label[,] DisplayFieldMatrix)
         {
@@ -38,6 +42,15 @@ namespace ChessC.DataTypes
 
             if (!referencedField.returnOccupancy() && (referencedField.getPiece().getColor() != inputPiece.getColor())) return true;
             else return false;
+        }
+
+        public Piece getPieceAt(coordPair location) {
+            if (location.row > dimensions.row - 1 || location.collumn > dimensions.collumn - 1) return null;
+            else return Fields[location.row, location.collumn].getPiece();
+        }
+
+        public void receiveClick(coordPair clickLocation) { 
+            
         }
 
         private void initPieceArray()
@@ -98,9 +111,9 @@ namespace ChessC.DataTypes
             int row, collumn;
             coordPair tempPair;
             color colorBuffer = color.black;
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < 64; i++) //rework all for loops to account for non square boards!
             {
-                collumn = i % 8; row = i / 8;
+                collumn = i % dimensions.collumn; row = i / dimensions.row;
                 if (!hasRowChanged(i))
                 {
                     if (colorBuffer == color.white) colorBuffer = color.black;
@@ -118,11 +131,14 @@ namespace ChessC.DataTypes
         private bool hasRowChanged(int i)
         {
             int currentRow, lastRow;
-            currentRow = i / 8;
-            lastRow = (i - 1) / 8;
+            currentRow = i / dimensions.row;
+            lastRow = (i - 1) / dimensions.row;
             if (currentRow != lastRow) return true;
             else return false;
         }
+
+        public void setDimensions(coordPair dimensions) { this.dimensions = dimensions; }
+        public coordPair getDimensions() { return this.dimensions; }
 
         public void updateFieldStatus()
         {
@@ -141,7 +157,7 @@ namespace ChessC.DataTypes
             int collumn, row;
             for (int i = 0; i < 64; i++)
             {
-                collumn = i % 8; row = i / 8;   
+                collumn = i % dimensions.collumn; row = i / dimensions.row;   
                 if (Fields[row, collumn].getColor() == color.white) DisplayFieldMatrix[row, collumn].BackColor = Color.Wheat;
                 else DisplayFieldMatrix[row, collumn].BackColor = Color.SaddleBrown;
 
@@ -154,7 +170,7 @@ namespace ChessC.DataTypes
            
             for (int i = 0; i < 64; i++)
             {
-                collumn = i % 8; row = i / 8;
+                collumn = i % dimensions.collumn; row = i / dimensions.row;
                 tempPiece = Fields[row, collumn].getPiece();
                 if (tempPiece != null)
                 {
