@@ -10,17 +10,24 @@ using System.Drawing;
 
 namespace ChessC.DataTypes
 {
-    
+
     class Board
     {
-        
+
         private Label[,] DisplayFieldMatrix;
         private Field[,] Fields = new Field[8, 8];
-        private Piece[] PieceArray = new Piece[32];
-        private Piece LastUpdatedPiece;
-        private LinkedList<String> allMoves = new LinkedList<String>();
-        private coordPair[] attackedFields;
+        private Piece[] PieceArray = new Piece[32]; //resist lists. ill use an initilization procedure to calc the number of pieces needed and keep this an array.
+                                                    //i browsed the internal list methods, and discovered the atrocity of EnsureCapacity().
+                                                    //Useful for some cases - not for mine. Fuck convenience. I'm going to use arrays here.
+                                                    //removePieces() may be a bit more difficult with this in mind, but that's ok.
+        private Piece selectedPiece;
+        private Piece[] Graveyard; //temp
+        private LinkedList<String> allMoves = new LinkedList<String>(); //remember what I said about lists... yeah these are just strings, shouldnt take up too much
+                                                                        //also, I like the Linked hierarchy thats constructed like this, and that's harder to do with an array, so i'll just use this
+                                                                       
+        private coordPair[] attackedFields, moveableFields;
         private coordPair dimensions;
+        private color currentMoveColor;
         public Board()
         {
             PieceArray = new Piece[32];
@@ -49,8 +56,64 @@ namespace ChessC.DataTypes
             else return Fields[location.row, location.collumn].getPiece();
         }
 
-        public void receiveClick(coordPair clickLocation) { 
-            
+        private bool fieldIsViableMove(coordPair moveLocation)
+        {
+            for (int i = 0; i < moveableFields.Length; i++) {
+                if (moveLocation.row == moveableFields[i].row && moveLocation.collumn == moveableFields[i].collumn) return true;
+            }
+            return false;
+        }
+
+        private int findIndexOfObjectInArray(Piece inputPiece) { //decide whether the time penatly is worth it, or if the Piece class should have an int index field for a space penalty
+            for (int i = 0; i < this.PieceArray.Length; i++) {
+                if (inputPiece == this.PieceArray[i]) return i;
+            }
+            return -1; 
+        }
+
+        public void receiveClick(coordPair clickLocation) {
+            Piece tempPiece;
+            if (Fields[clickLocation.row, clickLocation.collumn].getPiece() != null)
+            {
+                tempPiece = Fields[clickLocation.row, clickLocation.collumn].getPiece();
+                if (selectedPiece == null || tempPiece.getColor() == currentMoveColor) selectedPiece = tempPiece;
+            }
+            else if (selectedPiece != null) {
+                if (fieldIsViableMove(clickLocation)) movePiece(selectedPiece, clickLocation);
+            }
+        }
+
+        private void issueAPieceBurial(int PieceIndex)
+        {
+            int j = 0;
+            Piece[] tempArray = new Piece[this.PieceArray.Length - 1];
+            for (int i = 0; i < PieceIndex; i++) {
+                j = i;
+                tempArray[i] = this.PieceArray[i];
+            }
+            for (int i = PieceIndex + 1; i < PieceArray.Length; i++) {
+                j++;
+                tempArray[j] = this.PieceArray[i];
+            }
+            this.PieceArray = new Piece[tempArray.Length];
+            this.PieceArray = tempArray;
+        } //this vs 2times the capacity of your items
+
+        private void movePiece(Piece inputPiece, coordPair location) {
+            Piece pieceOnDestination = Fields[location.row, location.collumn].getPiece();
+            coordPair firstPosition = inputPiece.getLocation();
+            Fields[firstPosition.row, firstPosition.collumn].setPiece(null);
+            inputPiece.setLocation(location);
+            if (pieceOnDestination != null) {
+                if (pieceOnDestination.getColor() != inputPiece.getColor())
+                {
+                    int pieceOnDestIndex = findIndexOfObjectInArray(pieceOnDestination);
+
+                }
+                else { 
+                    
+                }
+            }
         }
 
         private void initPieceArray()
@@ -106,6 +169,7 @@ namespace ChessC.DataTypes
             PieceArray[31] = new Rook(tempPair, tempColor);
         }
 
+        
         private void initFields()
         {
             int row, collumn;
@@ -127,6 +191,8 @@ namespace ChessC.DataTypes
                 Fields[tempPair.row, tempPair.collumn].setPiece(PieceArray[i]);
             }
         }
+
+        
 
         private bool hasRowChanged(int i)
         {

@@ -14,18 +14,10 @@ namespace ChessC.Pieces
         public Bishop() : base() { }
         public override void calculateDirections()
         {
-
-            MoveOffsets tempOffset = new MoveOffsets();
-            tempOffset.isRecurring = true;
-
-            tempOffset.moveDirection = directions.UpRight;
-            moveOffsets.Add(tempOffset);
-            tempOffset.moveDirection = directions.RightDown;
-            moveOffsets.Add(tempOffset);
-            tempOffset.moveDirection = directions.DownLeft;
-            moveOffsets.Add(tempOffset);
-            tempOffset.moveDirection = directions.LeftUp;
-            moveOffsets.Add(tempOffset);
+            moveOffsets.Add(new MoveOffsets(directions.UpRight, location, true));
+            moveOffsets.Add(new MoveOffsets(directions.RightDown, location, true));
+            moveOffsets.Add(new MoveOffsets(directions.DownLeft, location, true));
+            moveOffsets.Add(new MoveOffsets(directions.LeftUp, location, true));
         }
     }
 }

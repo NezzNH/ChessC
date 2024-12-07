@@ -13,14 +13,14 @@ namespace ChessC.Pieces
         public King() : base() { }
         public override void calculateDirections()
         {
-            MoveOffsets tempOffset = new MoveOffsets();
-            tempOffset.isRecurring = false;
-
-            for (int i = 0; i < 8; i++)
-            {
-                tempOffset.moveDirection = tempDirectionsGlobalArray[i];
-                moveOffsets.Add(tempOffset);
-            }
+            moveOffsets.Add(new MoveOffsets(directions.Up, location, false));
+            moveOffsets.Add(new MoveOffsets(directions.UpRight, location, false));
+            moveOffsets.Add(new MoveOffsets(directions.Right, location, false));
+            moveOffsets.Add(new MoveOffsets(directions.RightDown, location, false));
+            moveOffsets.Add(new MoveOffsets(directions.Down, location, false));
+            moveOffsets.Add(new MoveOffsets(directions.DownLeft, location, false));
+            moveOffsets.Add(new MoveOffsets(directions.Left, location, false));
+            moveOffsets.Add(new MoveOffsets(directions.LeftUp, location, false));
         }
     }
 }

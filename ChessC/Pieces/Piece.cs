@@ -12,11 +12,11 @@ namespace ChessC.Pieces
         protected directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
                                                               directions.Down, directions.DownLeft, directions.Left, directions.LeftUp}; //temp for queen writing convention
         protected bool pinned, isRecurringMovePiece, moveCalcIsUpdated;
-        protected coordPair location;
+        protected coordPair location, dimensions;
         protected List<MoveOffsets> moveOffsets;
         protected coordPair[] possibleMoveLocations;
         protected color pieceColor;
-        protected coordPair dimensions;
+        protected int positionInPiecesArray;
         protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = false)
         {
             this.pinned = pinned;
@@ -44,6 +44,8 @@ namespace ChessC.Pieces
             this.calculateDirections();
             this.moveCalcIsUpdated = false;
         }
+
+        public void setLocation(coordPair location) { this.location = location; }
 
         private coordPair convertDirectionToOffset(directions direction)
         {
