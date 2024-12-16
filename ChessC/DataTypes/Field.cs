@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using ChessC.Pieces;
 
 namespace ChessC.DataTypes
@@ -18,6 +19,11 @@ namespace ChessC.DataTypes
         {
             location.collumn = normedFieldIndex % 8;
             location.row = normedFieldIndex / 8;
+            this.fieldColor = fieldColor;
+        }
+        public Field(int row, int collumn, color fieldColor) {
+            location.collumn = collumn;
+            location.row = row;
             this.fieldColor = fieldColor;
         }
         public void changeOccupancy(bool inputOccupancy) { this.isOccupied = inputOccupancy; }

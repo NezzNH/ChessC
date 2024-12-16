@@ -17,7 +17,7 @@ namespace ChessC.Pieces
         protected coordPair[] possibleMoveLocations;
         protected color pieceColor;
         protected int positionInPiecesArray;
-        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = false)
+        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true)
         {
             this.pinned = pinned;
             this.location = location;
@@ -42,10 +42,18 @@ namespace ChessC.Pieces
             tempPair.collumn = 8; tempPair.row = 8;
             this.dimensions = tempPair;
             this.calculateDirections();
-            this.moveCalcIsUpdated = false;
+            this.moveCalcIsUpdated = true;
         }
 
         public void setLocation(coordPair location) { this.location = location; }
+        public coordPair getLocation() { return this.location; }
+        public abstract void calculateDirections();
+        public bool returnPin() { return this.pinned; }
+        public void setPinned(bool pinned) { this.pinned = pinned; }
+        public void setColor(color color) { this.pieceColor = color; }
+        public color getColor() { return this.pieceColor; }
+        public void setMoveCalcUpdate(bool input) { this.moveCalcIsUpdated = input; }
+        public bool getMoveCalcUpdate() { return this.moveCalcIsUpdated; }
 
         private coordPair convertDirectionToOffset(directions direction)
         {
@@ -101,7 +109,7 @@ namespace ChessC.Pieces
         }
 
         protected bool isWithinBounds(coordPair input) {
-            if (input.row > dimensions.row-1 || input.row < 0 || input.collumn > dimensions.collumn-1 || input.collumn < 0) return false;
+            if (input.row > dimensions.row - 1 || input.row < 0 || input.collumn > dimensions.collumn - 1 || input.collumn < 0) return false;
             else return true;
         }
 
@@ -120,16 +128,16 @@ namespace ChessC.Pieces
                     for (int i = 0; i < moveOffsets.Count; i++)
                     {
                         rayLoc = location;
-                        if (!rayDepletionArray[i])
+                        do
                         {
                             tempDisp = convertDirectionToOffset(moveOffsets[i].moveDirection);
-                            rayLoc.row += tempDisp.row * offset;
-                            rayLoc.collumn += tempDisp.collumn * offset;
+                            rayLoc.row += tempDisp.row;
+                            rayLoc.collumn += tempDisp.collumn;
 
                             if (isWithinBounds(rayLoc)) moveLocations.Add(rayLoc);
                             else rayDepletionArray[i] = true; // true means ray is depleted
-                        }
-                        else depletedRayCounter++;
+                        } while (!rayDepletionArray[i]);   
+                        depletedRayCounter++;
                     }
                     if (depletedRayCounter == moveOffsets.Count) areAllRaysDepleted = true;
                     else offset++;
@@ -145,7 +153,7 @@ namespace ChessC.Pieces
                     if (isWithinBounds(hitLoc)) moveLocations.Add(hitLoc);
                 }
             }
-            
+
             int finalArraySize = moveLocations.Count;
             coordPair[] finalArray = new coordPair[finalArraySize];
             finalArray = moveLocations.ToArray();
@@ -153,16 +161,5 @@ namespace ChessC.Pieces
             possibleMoveLocations = finalArray; //hold a copy in case the user requests the moves again and the piece hasnt moved
             return finalArray;
         }
-
-        public coordPair[] returnMoveAttemptDebug() {
-            coordPair[] testArray = returnAllPossibleMoves();
-            return testArray;
-        }
-        public coordPair getLocation() { return this.location; }
-        public abstract void calculateDirections();
-        public bool returnPin() { return this.pinned; }
-        public void setPinned(bool pinned) { this.pinned = pinned; }
-        public void setColor(color color) { this.pieceColor = color; }
-        public color getColor() { return this.pieceColor; }
     }
 }

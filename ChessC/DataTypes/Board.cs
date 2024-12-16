@@ -10,16 +10,12 @@ using System.Drawing;
 
 namespace ChessC.DataTypes
 {
-
     class Board
     {
 
         private Label[,] DisplayFieldMatrix;
         private Field[,] Fields = new Field[8, 8];
-        private Piece[] PieceArray = new Piece[32]; //resist lists. ill use an initilization procedure to calc the number of pieces needed and keep this an array.
-                                                    //i browsed the internal list methods, and discovered the atrocity of EnsureCapacity().
-                                                    //Useful for some cases - not for mine. Fuck convenience. I'm going to use arrays here.
-                                                    //removePieces() may be a bit more difficult with this in mind, but that's ok.
+        private List<Piece> pieces = new List<Piece>(); //remember all that kerfuffel i made about lists... yeah...
         private Piece selectedPiece;
         private Piece[] Graveyard; //temp
         private LinkedList<String> allMoves = new LinkedList<String>(); //remember what I said about lists... yeah these are just strings, shouldnt take up too much
@@ -28,9 +24,15 @@ namespace ChessC.DataTypes
         private coordPair[] attackedFields, moveableFields;
         private coordPair dimensions;
         private color currentMoveColor;
+        public enum inputType
+        {
+            selection,
+            moveRequest,
+        }
+        public inputType currentInputType;
         public Board()
         {
-            PieceArray = new Piece[32];
+            pieces = new List<Piece>();
             dimensions.row = 8; dimensions.collumn = 8;
             this.DisplayFieldMatrix = new Label[dimensions.row, dimensions.collumn]; //we'll need a way to generate labels in the gui dynamically with board dimensions
         }
@@ -38,17 +40,11 @@ namespace ChessC.DataTypes
         {
             this.DisplayFieldMatrix = DisplayFieldMatrix;
         }
+        public void setDimensions(coordPair dimensions) { this.dimensions = dimensions; }
+        public coordPair getDimensions() { return this.dimensions; }
         public void initBoard()
         {
             initPieceArray(); initFields(); setupFieldColors();
-        }
-
-        public bool getMoveLegality(coordPair requestedCoords, Piece inputPiece) { //TO-DO decide whether selected piece will be held, or it should be passed along with each function
-            Field referencedField = Fields[requestedCoords.row, requestedCoords.collumn];
-            Piece reqPiece = inputPiece;
-
-            if (!referencedField.returnOccupancy() && (referencedField.getPiece().getColor() != inputPiece.getColor())) return true;
-            else return false;
         }
 
         public Piece getPieceAt(coordPair location) {
@@ -64,186 +60,170 @@ namespace ChessC.DataTypes
             return false;
         }
 
-        private int findIndexOfObjectInArray(Piece inputPiece) { //decide whether the time penatly is worth it, or if the Piece class should have an int index field for a space penalty
-            for (int i = 0; i < this.PieceArray.Length; i++) {
-                if (inputPiece == this.PieceArray[i]) return i;
-            }
-            return -1; 
+        public inputType determineInputType(coordPair clickLocation) {
+            if (selectedPiece != null && selectedPiece.getColor() == currentMoveColor) return inputType.moveRequest;
+            else return inputType.selection;
         }
 
-        public void receiveClick(coordPair clickLocation) {
-            Piece tempPiece;
-            if (Fields[clickLocation.row, clickLocation.collumn].getPiece() != null)
-            {
-                tempPiece = Fields[clickLocation.row, clickLocation.collumn].getPiece();
-                if (selectedPiece == null || tempPiece.getColor() == currentMoveColor) selectedPiece = tempPiece;
-            }
-            else if (selectedPiece != null) {
-                if (fieldIsViableMove(clickLocation)) movePiece(selectedPiece, clickLocation);
-            }
-        }
-
-        private void issueAPieceBurial(int PieceIndex)
-        {
-            int j = 0;
-            Piece[] tempArray = new Piece[this.PieceArray.Length - 1];
-            for (int i = 0; i < PieceIndex; i++) {
-                j = i;
-                tempArray[i] = this.PieceArray[i];
-            }
-            for (int i = PieceIndex + 1; i < PieceArray.Length; i++) {
-                j++;
-                tempArray[j] = this.PieceArray[i];
-            }
-            this.PieceArray = new Piece[tempArray.Length];
-            this.PieceArray = tempArray;
-        } //this vs 2times the capacity of your items
-
-        private void movePiece(Piece inputPiece, coordPair location) {
-            Piece pieceOnDestination = Fields[location.row, location.collumn].getPiece();
-            coordPair firstPosition = inputPiece.getLocation();
-            Fields[firstPosition.row, firstPosition.collumn].setPiece(null);
-            inputPiece.setLocation(location);
-            if (pieceOnDestination != null) {
-                if (pieceOnDestination.getColor() != inputPiece.getColor())
+        public void receiveClick(coordPair clickLocation, inputType inType) {
+            if (inType == inputType.selection){
+                if (Fields[clickLocation.row, clickLocation.collumn].getPiece().getColor() == currentMoveColor
+                    && Fields[clickLocation.row, clickLocation.collumn].getPiece() != null) {
+                    selectedPiece = Fields[clickLocation.row, clickLocation.collumn].getPiece();
+                }
+                else
                 {
-                    int pieceOnDestIndex = findIndexOfObjectInArray(pieceOnDestination);
-
-                }
-                else { 
-                    
+                    for (int i = 0; i < moveableFields.Length; i++) {
+                        DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor =
+                        convertColor(Fields[moveableFields[i].row, moveableFields[i].collumn].getColor());
+                    }
                 }
             }
+            else {
+                if (selectedPiece != null) movePiece(selectedPiece, clickLocation);
+            }
         }
+        
+        private bool movePiece(Piece inputPiece, coordPair location) {
 
+            color inputPieceColor = inputPiece.getColor();
+            coordPair inputPieceLocation = inputPiece.getLocation();
+            Piece opposingPiece = Fields[location.row, location.collumn].getPiece();
+
+            if (opposingPiece == null)
+            {
+                Fields[inputPieceLocation.row, inputPieceLocation.collumn].setPiece(null);
+                inputPiece.setLocation(location);
+                Fields[location.row, location.collumn].setPiece(inputPiece);
+                return true;
+            }
+            else {
+                if (opposingPiece.getColor() != inputPieceColor) {
+                    Fields[inputPieceLocation.row, inputPieceLocation.collumn].setPiece(null);
+                    inputPiece.setLocation(location);
+                    pieces.Remove(opposingPiece);
+                    Fields[location.row, location.collumn].setPiece(inputPiece);
+                    return true;
+                }
+            }
+            return false;
+        }
         private void initPieceArray()
         {
             coordPair tempPair;
             color tempColor = color.white;
             tempPair.collumn = 0;
             tempPair.row = 0;
-            PieceArray[0] = new Rook(tempPair, tempColor);
+            pieces.Add(new Rook(tempPair, tempColor));
             tempPair.collumn = 1;
-            PieceArray[1] = new Knight(tempPair, tempColor);
+            pieces.Add(new Knight(tempPair, tempColor));
             tempPair.collumn = 2;
-            PieceArray[2] = new Bishop(tempPair, tempColor);
+            pieces.Add(new Bishop(tempPair, tempColor));
             tempPair.collumn = 3;
-            PieceArray[3] = new Queen(tempPair, tempColor);
+            pieces.Add(new Queen(tempPair, tempColor));
             tempPair.collumn = 4;
-            PieceArray[4] = new King(tempPair, tempColor);
+            pieces.Add(new King(tempPair, tempColor));
             tempPair.collumn = 5;
-            PieceArray[5] = new Bishop(tempPair, tempColor);
+            pieces.Add(new Bishop(tempPair, tempColor));
             tempPair.collumn = 6;
-            PieceArray[6] = new Knight(tempPair, tempColor);
+            pieces.Add(new Knight(tempPair, tempColor));
             tempPair.collumn = 7;
-            PieceArray[7] = new Rook(tempPair, tempColor);
+            pieces.Add(new Rook(tempPair, tempColor));
             tempPair.row = 1;
             for (int i = 0; i < 8; i++)
             {
                 tempPair.collumn = i;
-                PieceArray[i + 8] = new Pawn(tempPair, tempColor);
+                pieces.Add(new Pawn(tempPair, tempColor));
             }
             tempPair.row = 6;
             tempColor = color.black;
             for (int i = 0; i < 8; i++)
             {
                 tempPair.collumn = i;
-                PieceArray[i + 16] = new Pawn(tempPair, tempColor);
+                pieces.Add(new Pawn(tempPair, tempColor));
             }
             tempPair.row = 7;
             tempPair.collumn = 0;
-            PieceArray[24] = new Rook(tempPair, tempColor);
+            pieces.Add(new Rook(tempPair, tempColor));
             tempPair.collumn = 1;
-            PieceArray[25] = new Knight(tempPair, tempColor);
+            pieces.Add(new Knight(tempPair, tempColor));
             tempPair.collumn = 2;
-            PieceArray[26] = new Bishop(tempPair, tempColor);
+            pieces.Add(new Bishop(tempPair, tempColor));
             tempPair.collumn = 3;
-            PieceArray[27] = new Queen(tempPair, tempColor);
+            pieces.Add(new Queen(tempPair, tempColor));
             tempPair.collumn = 4;
-            PieceArray[28] = new King(tempPair, tempColor);
+            pieces.Add(new King(tempPair, tempColor));
             tempPair.collumn = 5;
-            PieceArray[29] = new Bishop(tempPair, tempColor);
+            pieces.Add(new Bishop(tempPair, tempColor));
             tempPair.collumn = 6;
-            PieceArray[30] = new Knight(tempPair, tempColor);
+            pieces.Add(new Knight(tempPair, tempColor));
             tempPair.collumn = 7;
-            PieceArray[31] = new Rook(tempPair, tempColor);
+            pieces.Add(new Rook(tempPair, tempColor));
+            Graveyard = new Piece[32]; //when we do dynamic board setups for n*n boards, this will be determined
+                                       //automatically...
         }
-
-        
         private void initFields()
         {
-            int row, collumn;
             coordPair tempPair;
-            color colorBuffer = color.black;
-            for (int i = 0; i < 64; i++) //rework all for loops to account for non square boards!
+            bool changeRow = false;
+            color colorBuffer = color.white;
+            for (int i = 0; i < dimensions.row; i++)
             {
-                collumn = i % dimensions.collumn; row = i / dimensions.row;
-                if (!hasRowChanged(i))
-                {
-                    if (colorBuffer == color.white) colorBuffer = color.black;
-                    else colorBuffer = color.white;
+                changeRow = true;
+                for (int j = 0; j < dimensions.collumn; j++) {
+                    if (!changeRow)
+                    {
+                        if (colorBuffer == color.white) colorBuffer = color.black;
+                        else colorBuffer = color.white;
+                    }
+                    else changeRow = false;
+                  
+                    
+                   Fields[i, j] = new Field(i,j, colorBuffer);
                 }
-                Fields[row, collumn] = new Field(i, colorBuffer);
             }
-            for (int i = 0; i < PieceArray.Length; i++)
+            for (int i = 0; i < pieces.Count; i++)
             {
-                tempPair = PieceArray[i].getLocation();
-                Fields[tempPair.row, tempPair.collumn].setPiece(PieceArray[i]);
+                tempPair = pieces[i].getLocation();
+                Fields[tempPair.row, tempPair.collumn].setPiece(pieces[i]);
             }
         }
-
-        
-
-        private bool hasRowChanged(int i)
-        {
-            int currentRow, lastRow;
-            currentRow = i / dimensions.row;
-            lastRow = (i - 1) / dimensions.row;
-            if (currentRow != lastRow) return true;
-            else return false;
-        }
-
-        public void setDimensions(coordPair dimensions) { this.dimensions = dimensions; }
-        public coordPair getDimensions() { return this.dimensions; }
-
-        public void updateFieldStatus()
-        {
-
-        } //requires variable LastUpdatedPiece, or some other approach
-
         private String returnPieceSymbol(Piece inputPiece)
         {
             if (inputPiece == null) return "";
             String pieceType = inputPiece.GetType().Name;
             if (pieceType == "Knight") return "k";
-            else return pieceType.Substring(0, 1); //no need to use a switch here...
+            else return pieceType.Substring(0, 1);
+        }
+        private void setupFieldColors() {
+            for (int i = 0; i < dimensions.row; i++)
+            {
+                for (int j = 0; j < dimensions.collumn; j++) {
+                    DisplayFieldMatrix[i, j].BackColor = convertColor(Fields[i,j].getColor());
+                }
+            }
         }
 
-        private void setupFieldColors() {
-            int collumn, row;
-            for (int i = 0; i < 64; i++)
-            {
-                collumn = i % dimensions.collumn; row = i / dimensions.row;   
-                if (Fields[row, collumn].getColor() == color.white) DisplayFieldMatrix[row, collumn].BackColor = Color.Wheat;
-                else DisplayFieldMatrix[row, collumn].BackColor = Color.SaddleBrown;
-
-            }
+        private Color convertColor(color inputcolor) {
+            if (inputcolor == color.white) return Color.Wheat;
+            else return Color.SaddleBrown;
         }
         public void renderFields()
         {
-            int collumn, row;
             Piece tempPiece;
            
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < dimensions.row; i++)
             {
-                collumn = i % dimensions.collumn; row = i / dimensions.row;
-                tempPiece = Fields[row, collumn].getPiece();
-                if (tempPiece != null)
+                for (int j = 0; j < dimensions.collumn; j++)
                 {
-                    if (tempPiece.getColor() == color.white) DisplayFieldMatrix[row, collumn].ForeColor = Color.White;
-                    else DisplayFieldMatrix[row, collumn].ForeColor = Color.Black;
+                    tempPiece = Fields[i, j].getPiece();
+                    if (tempPiece != null)
+                    {
+                        if (tempPiece.getColor() == color.white) DisplayFieldMatrix[i, j].ForeColor = Color.White;
+                        else DisplayFieldMatrix[i, j].ForeColor = Color.Black;
+                    }
+                    DisplayFieldMatrix[i, j].Text = returnPieceSymbol(Fields[i, j].getPiece());
                 }
-                DisplayFieldMatrix[row, collumn].Text = returnPieceSymbol(Fields[row, collumn].getPiece());
             }
         }
     }

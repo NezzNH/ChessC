@@ -16,6 +16,12 @@ using ChessC.Util;
 
 namespace ChessC
 {
+
+    //TO-DO: Implement more rigorous move discrenment and a robust move handling pipeline
+    //we must assume the user can input any number of clicks, and handling edge cases shouldnt be so
+    //convoluted and hidden in small conditionals somewhere
+    //it will also be useful for debugging purposes and the eventual implementation of AI into the mix
+
     public partial class Form1 : Form
     {
         public Form1()
@@ -23,7 +29,10 @@ namespace ChessC
             InitializeComponent();
         }
 
+ 
+
         Board board = new Board();
+        coordPair clickLocation;
 
         public coordPair convertIndexToCoords(int input) {
             coordPair tempPair;
@@ -48,11 +57,54 @@ namespace ChessC
             board.renderFields();
         }
 
-        //all this reorganization leaves us with only form related functions and init in this file. yay :3
+        private void a1_Click(object sender, EventArgs e)
+        {
+            clickLocation = convertIndexToCoords(0);
+            board.receiveClick(clickLocation);
+        }
+
+        private void b1_Click(object sender, EventArgs e)
+        {
+            clickLocation = convertIndexToCoords(1);
+            board.receiveClick(clickLocation);
+        }
+
+        private void c1_Click(object sender, EventArgs e)
+        {
+            clickLocation = convertIndexToCoords(2);
+            board.receiveClick(clickLocation);
+        }
+
+        private void d1_Click(object sender, EventArgs e)
+        {
+            clickLocation = convertIndexToCoords(3);
+            board.receiveClick(clickLocation);
+        }
+
+        private void e1_Click(object sender, EventArgs e)
+        {
+            clickLocation = convertIndexToCoords(4);
+            board.receiveClick(clickLocation);
+        }
+
+        private void f1_Click(object sender, EventArgs e)
+        {
+            clickLocation = convertIndexToCoords(5);
+            board.receiveClick(clickLocation);
+        }
+
+        private void g1_Click(object sender, EventArgs e)
+        {
+            clickLocation = convertIndexToCoords(6);
+            board.receiveClick(clickLocation);
+        }
 
         private void h1_Click(object sender, EventArgs e)
         {
-            board.receiveClick(convertIndexToCoords(7));
+            clickLocation = convertIndexToCoords(7);
+            board.receiveClick(clickLocation);
         }
+
+        //all this reorganization leaves us with only form related functions and init in this file. yay :3
     }
 }
