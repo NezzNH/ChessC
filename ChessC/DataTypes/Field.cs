@@ -17,11 +17,13 @@ namespace ChessC.DataTypes
         private Piece pieceOnField;
         public Field(int normedFieldIndex, color fieldColor)
         {
+            this.pieceOnField = null;
             location.collumn = normedFieldIndex % 8;
             location.row = normedFieldIndex / 8;
             this.fieldColor = fieldColor;
         }
         public Field(int row, int collumn, color fieldColor) {
+            this.pieceOnField = null;
             location.collumn = collumn;
             location.row = row;
             this.fieldColor = fieldColor;

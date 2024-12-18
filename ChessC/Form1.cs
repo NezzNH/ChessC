@@ -29,8 +29,6 @@ namespace ChessC
             InitializeComponent();
         }
 
- 
-
         Board board = new Board();
         coordPair clickLocation;
 

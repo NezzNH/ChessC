@@ -32,6 +32,8 @@ namespace ChessC.DataTypes
         public inputType currentInputType;
         public Board()
         {
+            moveableFields = new coordPair[0];
+            selectedPiece = null;
             pieces = new List<Piece>();
             dimensions.row = 8; dimensions.collumn = 8;
             this.DisplayFieldMatrix = new Label[dimensions.row, dimensions.collumn]; //we'll need a way to generate labels in the gui dynamically with board dimensions
@@ -61,15 +63,37 @@ namespace ChessC.DataTypes
         }
 
         public inputType determineInputType(coordPair clickLocation) {
-            if (selectedPiece != null && selectedPiece.getColor() == currentMoveColor) return inputType.moveRequest;
-            else return inputType.selection;
+            if (moveableFields.Length > 0) {
+                for (int i = 0; i < moveableFields.Length; i++)
+                {
+                    if (moveableFields[i].row == clickLocation.row && moveableFields[i].collumn == clickLocation.collumn) return inputType.moveRequest;
+                }
+            }
+            
+            return inputType.selection;
         }
 
-        public void receiveClick(coordPair clickLocation, inputType inType) {
-            if (inType == inputType.selection){
+        private coordPair[] filterMovesForOccupancy(coordPair[] inputFields) {
+            List<coordPair> tempList = new List<coordPair> ();
+            for (int i = 0; i < inputFields.Length; i++) {
+                if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() == null) tempList.Add(inputFields[i]);
+            }
+            coordPair[] result = tempList.ToArray();
+            return result;
+        }
+
+        public void receiveClick(coordPair clickLocation) {
+            currentInputType = determineInputType(clickLocation);
+            if (currentInputType == inputType.selection){
                 if (Fields[clickLocation.row, clickLocation.collumn].getPiece().getColor() == currentMoveColor
                     && Fields[clickLocation.row, clickLocation.collumn].getPiece() != null) {
                     selectedPiece = Fields[clickLocation.row, clickLocation.collumn].getPiece();
+                    moveableFields = selectedPiece.returnAllPossibleMoves();
+                    moveableFields = filterMovesForOccupancy(moveableFields);
+                    for (int i = 0; i < moveableFields.Length; i++)
+                    {
+                        DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor = Color.Green;
+                    }
                 }
                 else
                 {
