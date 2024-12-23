@@ -24,11 +24,7 @@ namespace ChessC.DataTypes
         private coordPair[] attackedFields, moveableFields;
         private coordPair dimensions;
         private color currentMoveColor;
-        public enum inputType
-        {
-            selection,
-            moveRequest,
-        }
+        
         public inputType currentInputType;
         public Board()
         {
@@ -62,75 +58,120 @@ namespace ChessC.DataTypes
             return false;
         }
 
+        public enum inputType
+        {
+            selectedPiece,
+            reselectedPiece,
+            nullSelection,
+            neutralMoveRequest,
+            attackMoveRequest,
+            longCastle,
+            shortCastle,
+            errorMove
+        }
+
+        private void cycleMoveColors() {
+            if (currentMoveColor == color.white) currentMoveColor = color.black;
+            else currentMoveColor = color.white;
+        }
+
         public inputType determineInputType(coordPair clickLocation) {
-            if (moveableFields.Length > 0) {
-                for (int i = 0; i < moveableFields.Length; i++)
+            Piece pieceOnLocation = getPieceAt(clickLocation);
+            if (pieceOnLocation == null) {
+                if (selectedPiece == null) return inputType.nullSelection;
+                else if (fieldIsViableMove(clickLocation)) return inputType.neutralMoveRequest;
+                else return inputType.nullSelection;
+            }
+            else
+            {
+                if (pieceOnLocation.getColor() == currentMoveColor)
                 {
-                    if (moveableFields[i].row == clickLocation.row && moveableFields[i].collumn == clickLocation.collumn) return inputType.moveRequest;
+                    if (selectedPiece == null) return inputType.selectedPiece;
+                    else return inputType.reselectedPiece;
+                }
+                else {
+                    if (fieldIsViableMove(clickLocation) && selectedPiece != null) return inputType.attackMoveRequest;
+                    else return inputType.nullSelection;
                 }
             }
-            
-            return inputType.selection;
         }
 
         private coordPair[] filterMovesForOccupancy(coordPair[] inputFields) {
             List<coordPair> tempList = new List<coordPair> ();
             for (int i = 0; i < inputFields.Length; i++) {
-                if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() == null) tempList.Add(inputFields[i]);
+                if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() == null ||
+                    Fields[inputFields[i].row, inputFields[i].collumn].getPiece().getColor() != selectedPiece.getColor()) tempList.Add(inputFields[i]);
             }
             coordPair[] result = tempList.ToArray();
             return result;
         }
 
-        public void receiveClick(coordPair clickLocation) {
-            currentInputType = determineInputType(clickLocation);
-            if (currentInputType == inputType.selection){
-                if (Fields[clickLocation.row, clickLocation.collumn].getPiece().getColor() == currentMoveColor
-                    && Fields[clickLocation.row, clickLocation.collumn].getPiece() != null) {
-                    selectedPiece = Fields[clickLocation.row, clickLocation.collumn].getPiece();
-                    moveableFields = selectedPiece.returnAllPossibleMoves();
-                    moveableFields = filterMovesForOccupancy(moveableFields);
-                    for (int i = 0; i < moveableFields.Length; i++)
-                    {
-                        DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor = Color.Green;
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < moveableFields.Length; i++) {
-                        DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor =
-                        convertColor(Fields[moveableFields[i].row, moveableFields[i].collumn].getColor());
+        private void highlightMoveFields() {
+            for (int i = 0; i < moveableFields.Length; i++) {
+                DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor = Color.Green;
+            }
+        }
+
+        private void unhighlightMoveFields() {
+            for (int i = 0; i < moveableFields.Length; i++) {
+                DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor = convertColor(Fields[moveableFields[i].row, moveableFields[i].collumn].getColor());            
+            }
+        }
+
+        public String moveDebugInfo() {
+            String outputString = "";
+
+            outputString += $"moveType: {currentInputType}\n";
+            if (selectedPiece != null) {
+                outputString += $"{selectedPiece.GetType().Name}\n";
+                if (currentInputType == inputType.selectedPiece || currentInputType == inputType.reselectedPiece) {
+                    if (moveableFields.Length > 0) {
+                        outputString += "moveableFields:\n";
+                        for (int i = 0; i < moveableFields.Length; i++)
+                        {
+                            if (i > 0) outputString += ",";
+                            outputString += $"[{moveableFields[i].row}, {moveableFields[i].collumn}]";
+                        }
                     }
                 }
             }
-            else {
-                if (selectedPiece != null) movePiece(selectedPiece, clickLocation);
+            return outputString;
+        }
+
+        public void receiveClick(coordPair clickLocation) {
+            currentInputType = determineInputType(clickLocation);
+            switch (currentInputType) {
+                case inputType.reselectedPiece:
+                case inputType.selectedPiece:
+                    selectedPiece = getPieceAt(clickLocation);
+                    unhighlightMoveFields();
+                    moveableFields = selectedPiece.returnAllPossibleMoves();
+                    moveableFields = filterMovesForOccupancy(moveableFields);
+                    highlightMoveFields();
+                    break;
+                case inputType.attackMoveRequest:
+                case inputType.neutralMoveRequest:
+                    unhighlightMoveFields();
+                    movePiece(selectedPiece, clickLocation);
+                    renderFields();
+                    break;
+                default:
+                    break;
             }
         }
         
-        private bool movePiece(Piece inputPiece, coordPair location) {
-
-            color inputPieceColor = inputPiece.getColor();
-            coordPair inputPieceLocation = inputPiece.getLocation();
-            Piece opposingPiece = Fields[location.row, location.collumn].getPiece();
-
-            if (opposingPiece == null)
-            {
-                Fields[inputPieceLocation.row, inputPieceLocation.collumn].setPiece(null);
-                inputPiece.setLocation(location);
-                Fields[location.row, location.collumn].setPiece(inputPiece);
-                return true;
+        private void movePiece(Piece inputPiece, coordPair location) {
+            if (currentInputType == inputType.attackMoveRequest) {
+                Piece attackedPiece = getPieceAt(location);
+                pieces.Remove(attackedPiece);
+                Fields[location.row, location.collumn].setPiece(null);
             }
-            else {
-                if (opposingPiece.getColor() != inputPieceColor) {
-                    Fields[inputPieceLocation.row, inputPieceLocation.collumn].setPiece(null);
-                    inputPiece.setLocation(location);
-                    pieces.Remove(opposingPiece);
-                    Fields[location.row, location.collumn].setPiece(inputPiece);
-                    return true;
-                }
-            }
-            return false;
+            coordPair selectedPieceCurLocation = selectedPiece.getLocation();
+            Fields[selectedPieceCurLocation.row, selectedPieceCurLocation.collumn].setPiece(null);
+            selectedPiece.setLocation(location);
+            selectedPiece.setMoveCalcUpdate(true);
+            Fields[location.row, location.collumn].setPiece(selectedPiece);
+            cycleMoveColors();
         }
         private void initPieceArray()
         {

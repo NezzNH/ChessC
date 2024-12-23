@@ -114,7 +114,7 @@ namespace ChessC.Pieces
         }
 
         public coordPair[] returnAllPossibleMoves() {
-            if (possibleMoveLocations != null || moveCalcIsUpdated == false) return possibleMoveLocations;
+            if (possibleMoveLocations != null && moveCalcIsUpdated == false) return possibleMoveLocations;
             List<coordPair> moveLocations = new List<coordPair>();
             if (isRecurringMovePiece)
             {

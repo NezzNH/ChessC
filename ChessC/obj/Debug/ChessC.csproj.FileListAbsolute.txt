@@ -19,3 +19,14 @@ C:\Users\nezzn\source\repos\ChessC\ChessC\ChessC\obj\Debug\ChessC.csproj.Generat
 C:\Users\nezzn\source\repos\ChessC\ChessC\ChessC\obj\Debug\ChessC.csproj.CoreCompileInputs.cache
 C:\Users\nezzn\source\repos\ChessC\ChessC\ChessC\obj\Debug\ChessC.exe
 C:\Users\nezzn\source\repos\ChessC\ChessC\ChessC\obj\Debug\ChessC.pdb
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.csproj.AssemblyReference.cache
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.csproj.SuggestedBindingRedirects.cache
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.Form1.resources
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.Properties.Resources.resources
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.csproj.GenerateResource.cache
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.csproj.CoreCompileInputs.cache
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.exe
+C:\Users\nezzn\source\repos\ChessC\ChessC\obj\Debug\ChessC.pdb
+C:\Users\nezzn\source\repos\ChessC\ChessC\bin\Debug\ChessC.exe.config
+C:\Users\nezzn\source\repos\ChessC\ChessC\bin\Debug\ChessC.exe
+C:\Users\nezzn\source\repos\ChessC\ChessC\bin\Debug\ChessC.pdb
