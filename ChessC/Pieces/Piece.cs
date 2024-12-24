@@ -54,6 +54,7 @@ namespace ChessC.Pieces
         public color getColor() { return this.pieceColor; }
         public void setMoveCalcUpdate(bool input) { this.moveCalcIsUpdated = input; }
         public bool getMoveCalcUpdate() { return this.moveCalcIsUpdated; }
+        public bool isRecurrPiece() { return this.isRecurringMovePiece; } 
 
         private coordPair convertDirectionToOffset(directions direction)
         {

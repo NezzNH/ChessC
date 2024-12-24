@@ -20,7 +20,9 @@ namespace ChessC.DataTypes
         private Piece[] Graveyard; //temp
         private LinkedList<String> allMoves = new LinkedList<String>(); //remember what I said about lists... yeah these are just strings, shouldnt take up too much
                                                                         //also, I like the Linked hierarchy thats constructed like this, and that's harder to do with an array, so i'll just use this
-                                                                       
+
+        private directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
+                                                              directions.Down, directions.DownLeft, directions.Left, directions.LeftUp};
         private coordPair[] attackedFields, moveableFields;
         private coordPair dimensions;
         private color currentMoveColor;
@@ -95,13 +97,82 @@ namespace ChessC.DataTypes
                 }
             }
         }
+        private coordPair convertDirectionToOffset(directions direction)
+        {
+            coordPair tempCoordPair;
+            switch (direction)
+            {
+                case directions.Up:
+                    tempCoordPair.collumn = 0;
+                    tempCoordPair.row = 1;
+                    break;
+                case directions.UpRight:
+                    tempCoordPair.collumn = 1;
+                    tempCoordPair.row = 1;
+                    break;
+                case directions.Right:
+                    tempCoordPair.collumn = 1;
+                    tempCoordPair.row = 0;
+                    break;
+                case directions.RightDown:
+                    tempCoordPair.collumn = 1;
+                    tempCoordPair.row = -1;
+                    break;
+                case directions.Down:
+                    tempCoordPair.collumn = 0;
+                    tempCoordPair.row = -1;
+                    break;
+                case directions.DownLeft:
+                    tempCoordPair.collumn = -1;
+                    tempCoordPair.row = -1;
+                    break;
+                case directions.Left:
+                    tempCoordPair.collumn = -1;
+                    tempCoordPair.row = 0;
+                    break;
+                case directions.LeftUp:
+                    tempCoordPair.collumn = -1;
+                    tempCoordPair.row = 1;
+                    break;
+                default:
+                    tempCoordPair.collumn = 0;
+                    tempCoordPair.row = 0;
+                    break;
+            }
+            return tempCoordPair;
+        }
+
+        private bool isAlongSameDiagonal(coordPair previousField, coordPair currentField) {
+
+            coordPair difference;
+            difference.row = currentField.row - previousField.row;
+            difference.collumn = currentField.collumn - previousField.collumn;
+
+            if (difference.collumn > 1 || difference.collumn < -1 || difference.row < -1 ||  difference.row > 1) return false;
+            else return true;
+        }
 
         private coordPair[] filterMovesForOccupancy(coordPair[] inputFields) {
             List<coordPair> tempList = new List<coordPair> ();
-            for (int i = 0; i < inputFields.Length; i++) {
-                if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() == null ||
-                    Fields[inputFields[i].row, inputFields[i].collumn].getPiece().getColor() != selectedPiece.getColor()) tempList.Add(inputFields[i]);
+            if (selectedPiece.isRecurrPiece()) {
+                bool encounteredPiece = false, newDiagonal = true;
+                for (int i = 0; i < inputFields.Length; i++) {
+                    if (!newDiagonal && !isAlongSameDiagonal(inputFields[i - 1], inputFields[i])) encounteredPiece = false;
+                    else newDiagonal = false;
+                    if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() != null) encounteredPiece = true;
+
+                    if (!encounteredPiece) tempList.Add(inputFields[i]);
+                }
             }
+            else
+            {
+                for (int i = 0; i < inputFields.Length; i++)
+                {
+                    if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() == null ||
+                        Fields[inputFields[i].row, inputFields[i].collumn].getPiece().getColor() != selectedPiece.getColor()) tempList.Add(inputFields[i]);
+                }
+            }
+            
             coordPair[] result = tempList.ToArray();
             return result;
         }
