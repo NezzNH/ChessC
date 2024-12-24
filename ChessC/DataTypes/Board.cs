@@ -67,9 +67,9 @@ namespace ChessC.DataTypes
             nullSelection,
             neutralMoveRequest,
             attackMoveRequest,
-            longCastle,
-            shortCastle,
-            errorMove
+            longCastleRequest,
+            shortCastleRequest,
+            errorRequest
         }
 
         private void cycleMoveColors() {
