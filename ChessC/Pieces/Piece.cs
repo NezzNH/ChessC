@@ -16,9 +16,10 @@ namespace ChessC.Pieces
         protected List<MoveOffsets> moveOffsets;
         protected coordPair[] possibleMoveLocations;
         protected color pieceColor;
-        protected int positionInPiecesArray;
-        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true)
+        protected int positionInPiecesArray, moveCounter;
+        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true, int moveCount = 0)
         {
+            this.moveCounter = moveCount;
             this.pinned = pinned;
             this.location = location;
             this.pieceColor = pieceColor;
@@ -31,6 +32,7 @@ namespace ChessC.Pieces
         }
         protected Piece()
         {
+            this.moveCounter = 0;
             this.moveOffsets = new List<MoveOffsets>();
             this.pinned = false;
             coordPair tempPair;
@@ -54,7 +56,9 @@ namespace ChessC.Pieces
         public color getColor() { return this.pieceColor; }
         public void setMoveCalcUpdate(bool input) { this.moveCalcIsUpdated = input; }
         public bool getMoveCalcUpdate() { return this.moveCalcIsUpdated; }
-        public bool isRecurrPiece() { return this.isRecurringMovePiece; } 
+        public bool isRecurrPiece() { return this.isRecurringMovePiece; }
+
+        public int getMoveCount() { return this.moveCounter; }
 
         private coordPair convertDirectionToOffset(directions direction)
         {
@@ -137,7 +141,7 @@ namespace ChessC.Pieces
 
                             if (isWithinBounds(rayLoc)) moveLocations.Add(rayLoc);
                             else rayDepletionArray[i] = true; // true means ray is depleted
-                        } while (!rayDepletionArray[i]);   
+                        } while (!rayDepletionArray[i]);
                         depletedRayCounter++;
                     }
                     if (depletedRayCounter == moveOffsets.Count) areAllRaysDepleted = true;
@@ -162,5 +166,6 @@ namespace ChessC.Pieces
             possibleMoveLocations = finalArray; //hold a copy in case the user requests the moves again and the piece hasnt moved
             return finalArray;
         }
+        public void incrementMoveCount() { this.moveCounter++; }
     }
 }

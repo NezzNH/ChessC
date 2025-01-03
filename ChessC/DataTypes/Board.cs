@@ -195,6 +195,7 @@ namespace ChessC.DataTypes
             outputString += $"moveType: {currentInputType}\n";
             if (selectedPiece != null) {
                 outputString += $"{selectedPiece.GetType().Name}\n";
+                outputString += $"moveCount:{selectedPiece.getMoveCount()}\n";
                 if (currentInputType == inputType.selectedPiece || currentInputType == inputType.reselectedPiece) {
                     if (moveableFields.Length > 0) {
                         outputString += "moveableFields:\n";
@@ -216,6 +217,7 @@ namespace ChessC.DataTypes
                 case inputType.selectedPiece:
                     selectedPiece = getPieceAt(clickLocation);
                     unhighlightMoveFields();
+                    if (selectedPiece.GetType().Name == "Pawn") selectedPiece.calculateDirections();
                     moveableFields = selectedPiece.returnAllPossibleMoves();
                     moveableFields = filterMovesForOccupancy(moveableFields);
                     highlightMoveFields();
@@ -242,6 +244,7 @@ namespace ChessC.DataTypes
             selectedPiece.setLocation(location);
             selectedPiece.setMoveCalcUpdate(true);
             Fields[location.row, location.collumn].setPiece(selectedPiece);
+            selectedPiece.incrementMoveCount();
             cycleMoveColors();
         }
         private void initPieceArray()
