@@ -12,6 +12,7 @@ namespace ChessC.DataTypes
     {
         private bool isOccupied;
         private coordPair location;
+        private List<Claim> claims;
         private color fieldColor;
         private bool isAttacked;
         private Piece pieceOnField;
@@ -33,5 +34,16 @@ namespace ChessC.DataTypes
         public Piece getPiece() { return this.pieceOnField; }
         public void setPiece(Piece pieceOnField) { this.pieceOnField = pieceOnField; }
         public color getColor() { return this.fieldColor; }
+    }
+
+    struct Claim
+    {
+        public Piece claimant;
+        //public claimType type; ?? maybe, it depends on whether it would be useful to differentiate between direct claims
+        //or moveable fields, or just keeping claims unanymous, in which case we technically don't even need the struct.
+        //we could use a static object ClaimHandler to ease the use of claims, which I think is a smart idea
+
+        //also, i have absolutely no idea why i keep using the pronoun "we". its just me on this project
+        //maybe im finally going looney after entrusting the c# collector too much :O
     }
 }
