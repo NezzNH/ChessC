@@ -12,18 +12,13 @@ namespace ChessC.DataTypes
 {
     class Board
     {
-
         private Label[,] DisplayFieldMatrix;
         private Field[,] Fields = new Field[8, 8];
         private List<Piece> pieces = new List<Piece>(); //remember all that kerfuffel i made about lists... yeah...
         private Piece selectedPiece;
-        private Piece[] Graveyard; //temp
-        private LinkedList<String> allMoves = new LinkedList<String>(); //remember what I said about lists... yeah these are just strings, shouldnt take up too much
-                                                                        //also, I like the Linked hierarchy thats constructed like this, and that's harder to do with an array, so i'll just use this
-
         private directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
                                                               directions.Down, directions.DownLeft, directions.Left, directions.LeftUp};
-        private coordPair[] attackedFields, moveableFields;
+        private coordPair[] moveableFields;
         private coordPair dimensions;
         private color currentMoveColor;
         
@@ -97,50 +92,6 @@ namespace ChessC.DataTypes
                 }
             }
         }
-        private coordPair convertDirectionToOffset(directions direction)
-        {
-            coordPair tempCoordPair;
-            switch (direction)
-            {
-                case directions.Up:
-                    tempCoordPair.collumn = 0;
-                    tempCoordPair.row = 1;
-                    break;
-                case directions.UpRight:
-                    tempCoordPair.collumn = 1;
-                    tempCoordPair.row = 1;
-                    break;
-                case directions.Right:
-                    tempCoordPair.collumn = 1;
-                    tempCoordPair.row = 0;
-                    break;
-                case directions.RightDown:
-                    tempCoordPair.collumn = 1;
-                    tempCoordPair.row = -1;
-                    break;
-                case directions.Down:
-                    tempCoordPair.collumn = 0;
-                    tempCoordPair.row = -1;
-                    break;
-                case directions.DownLeft:
-                    tempCoordPair.collumn = -1;
-                    tempCoordPair.row = -1;
-                    break;
-                case directions.Left:
-                    tempCoordPair.collumn = -1;
-                    tempCoordPair.row = 0;
-                    break;
-                case directions.LeftUp:
-                    tempCoordPair.collumn = -1;
-                    tempCoordPair.row = 1;
-                    break;
-                default:
-                    tempCoordPair.collumn = 0;
-                    tempCoordPair.row = 0;
-                    break;
-            }
-            return tempCoordPair;
-        }
 
         private bool isAlongSameDiagonal(coordPair previousField, coordPair currentField) {
 
@@ -159,9 +110,12 @@ namespace ChessC.DataTypes
                 for (int i = 0; i < inputFields.Length; i++) {
                     if (!newDiagonal && !isAlongSameDiagonal(inputFields[i - 1], inputFields[i])) encounteredPiece = false;
                     else newDiagonal = false;
-                    if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() != null) encounteredPiece = true;
 
-                    if (!encounteredPiece) tempList.Add(inputFields[i]);
+                    Piece selectedPiece = Fields[inputFields[i].row, inputFields[i].collumn].getPiece();
+
+                    if (selectedPiece != null) encounteredPiece = true;
+
+                    if (!encounteredPiece || (selectedPiece != null && encounteredPiece && selectedPiece.getColor() != currentMoveColor)) tempList.Add(inputFields[i]);
                 }
             }
             else
@@ -175,7 +129,7 @@ namespace ChessC.DataTypes
             
             coordPair[] result = tempList.ToArray();
             return result;
-        }
+        } //fix this function! raycast pieces dont include enemy piece fields, and if they do, it seems they dont count them as occlusions! FIX!!!!! TO-DO!!!!!
 
         private void highlightMoveFields() {
             for (int i = 0; i < moveableFields.Length; i++) {
@@ -236,16 +190,35 @@ namespace ChessC.DataTypes
         private void movePiece(Piece inputPiece, coordPair location) {
             if (currentInputType == inputType.attackMoveRequest) {
                 Piece attackedPiece = getPieceAt(location);
+                removeAllClaimsOf(attackedPiece);
                 pieces.Remove(attackedPiece);
                 Fields[location.row, location.collumn].setPiece(null);
             }
             coordPair selectedPieceCurLocation = selectedPiece.getLocation();
             Fields[selectedPieceCurLocation.row, selectedPieceCurLocation.collumn].setPiece(null);
+            removeAllClaimsOf(inputPiece);
             selectedPiece.setLocation(location);
             selectedPiece.setMoveCalcUpdate(true);
             Fields[location.row, location.collumn].setPiece(selectedPiece);
             selectedPiece.incrementMoveCount();
+            selectedPiece.returnAllPossibleMoves();
+            addClaims(inputPiece);
+
             cycleMoveColors();
+        }
+
+        private void removeAllClaimsOf(Piece inputPiece) {
+            coordPair[] oldClaimFields = inputPiece.returnAllPossibleMoves();
+            for (int i = 0; i < oldClaimFields.Length; i++) Fields[oldClaimFields[i].row, oldClaimFields[i].collumn].removeClaimOf(inputPiece);
+            //TO-DO: this is probably not the best practice, seeing as there is a lot of random memory address access, owing to repeated
+            //references to the inputPiece object... maybe a cached struct with the minimum footprint that still ensures unique piece description
+            //is better? For now, i'll just do it this way and put it on my everexpanding backburner.
+        }
+
+        private void addClaims(Piece inputPiece)
+        {
+            coordPair[] fieldsToClaim = inputPiece.returnAllPossibleMoves();
+            for (int i = 0; i < fieldsToClaim.Length; i++) Fields[fieldsToClaim[i].row, fieldsToClaim[i].collumn].addClaim(inputPiece);
         }
         private void initPieceArray()
         {
@@ -298,8 +271,6 @@ namespace ChessC.DataTypes
             pieces.Add(new Knight(tempPair, tempColor));
             tempPair.collumn = 7;
             pieces.Add(new Rook(tempPair, tempColor));
-            Graveyard = new Piece[32]; //when we do dynamic board setups for n*n boards, this will be determined
-                                       //automatically...
         }
         private void initFields()
         {

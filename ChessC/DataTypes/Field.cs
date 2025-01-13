@@ -14,10 +14,10 @@ namespace ChessC.DataTypes
         private coordPair location;
         private List<Claim> claims;
         private color fieldColor;
-        private bool isAttacked;
         private Piece pieceOnField;
         public Field(int normedFieldIndex, color fieldColor)
         {
+            this.claims = new List<Claim>();
             this.pieceOnField = null;
             location.collumn = normedFieldIndex % 8;
             location.row = normedFieldIndex / 8;
@@ -28,6 +28,23 @@ namespace ChessC.DataTypes
             location.collumn = collumn;
             location.row = row;
             this.fieldColor = fieldColor;
+        }
+        public Claim[] getClaims() { return this.claims.ToArray(); }
+        public void addClaim(Piece inputPiece) {
+            Claim newClaim;
+            newClaim.claimant = inputPiece;
+            newClaim.isRaycastClaim = inputPiece.isRecurrPiece(); //To-DO: if the bottom TODO is to be done, use this method to match Claim struct exactly
+        }
+        public void removeClaimOf(Piece inputPiece) {
+            if (claims == null || claims.Count == 0) return; //TO-DO: fix necronomicon tier code
+            for (int i = 0; i < claims.Count; i++) { 
+                if (claims[i].claimant == inputPiece) claims.RemoveAt(i);
+                return; 
+            } //TO-DO: replace with RemoveAt() function as its possible there are internal optimiziations that make it faster than this code
+        }
+        public void clearClaims()
+        {
+            this.claims.Clear();
         }
         public void changeOccupancy(bool inputOccupancy) { this.isOccupied = inputOccupancy; }
         public bool returnOccupancy() { return this.isOccupied; }
@@ -45,5 +62,6 @@ namespace ChessC.DataTypes
 
         //also, i have absolutely no idea why i keep using the pronoun "we". its just me on this project
         //maybe im finally going looney after entrusting the c# collector too much :O
+        public bool isRaycastClaim;
     }
 }
