@@ -509,8 +509,6 @@ namespace ChessC
             debugDisplayLabel.Text = board.moveDebugInfo();
         }
 
-
-
         //all this reorganization leaves us with only form related functions and init in this file. yay :3
     }
 }

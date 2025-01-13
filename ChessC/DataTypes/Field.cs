@@ -24,16 +24,20 @@ namespace ChessC.DataTypes
             this.fieldColor = fieldColor;
         }
         public Field(int row, int collumn, color fieldColor) {
+            this.claims = new List<Claim>();
             this.pieceOnField = null;
             location.collumn = collumn;
             location.row = row;
             this.fieldColor = fieldColor;
         }
-        public Claim[] getClaims() { return this.claims.ToArray(); }
+        public Claim[] getClaims() {
+            if (claims == null || claims.Count == 0) return null;
+            return this.claims.ToArray(); }
         public void addClaim(Piece inputPiece) {
             Claim newClaim;
             newClaim.claimant = inputPiece;
             newClaim.isRaycastClaim = inputPiece.isRecurrPiece(); //To-DO: if the bottom TODO is to be done, use this method to match Claim struct exactly
+            claims.Add(newClaim);
         }
         public void removeClaimOf(Piece inputPiece) {
             if (claims == null || claims.Count == 0) return; //TO-DO: fix necronomicon tier code

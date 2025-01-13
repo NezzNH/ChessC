@@ -18,8 +18,8 @@ namespace ChessC.DataTypes
         private Piece selectedPiece;
         private directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
                                                               directions.Down, directions.DownLeft, directions.Left, directions.LeftUp};
-        private coordPair[] moveableFields;
-        private coordPair dimensions;
+        private coordPair[] moveableFields, claimSpecificFields;
+        private coordPair dimensions, selectedField;
         private color currentMoveColor;
         
         public inputType currentInputType;
@@ -105,17 +105,27 @@ namespace ChessC.DataTypes
 
         private coordPair[] filterMovesForOccupancy(coordPair[] inputFields) {
             List<coordPair> tempList = new List<coordPair> ();
+            List<coordPair> claimSpecific = new List<coordPair>();
             if (selectedPiece.isRecurrPiece()) {
                 bool encounteredPiece = false, newDiagonal = true;
                 for (int i = 0; i < inputFields.Length; i++) {
-                    if (!newDiagonal && !isAlongSameDiagonal(inputFields[i - 1], inputFields[i])) encounteredPiece = false;
+                    if (!newDiagonal && !isAlongSameDiagonal(inputFields[i - 1], inputFields[i])) {
+                        newDiagonal = true;
+                        encounteredPiece = false;
+                    } 
                     else newDiagonal = false;
+
+                    if (encounteredPiece && !newDiagonal) continue;
 
                     Piece selectedPiece = Fields[inputFields[i].row, inputFields[i].collumn].getPiece();
 
-                    if (selectedPiece != null) encounteredPiece = true;
-
-                    if (!encounteredPiece || (selectedPiece != null && encounteredPiece && selectedPiece.getColor() != currentMoveColor)) tempList.Add(inputFields[i]);
+                    if (selectedPiece != null)
+                    {
+                        encounteredPiece = true;
+                        if (selectedPiece.getColor() == currentMoveColor) claimSpecific.Add(inputFields[i]);
+                        else tempList.Add(inputFields[i]);
+                    }
+                    else tempList.Add(inputFields[i]);
                 }
             }
             else
@@ -126,10 +136,10 @@ namespace ChessC.DataTypes
                         Fields[inputFields[i].row, inputFields[i].collumn].getPiece().getColor() != selectedPiece.getColor()) tempList.Add(inputFields[i]);
                 }
             }
-            
             coordPair[] result = tempList.ToArray();
+            claimSpecificFields = claimSpecific.ToArray();
             return result;
-        } //fix this function! raycast pieces dont include enemy piece fields, and if they do, it seems they dont count them as occlusions! FIX!!!!! TO-DO!!!!!
+        }
 
         private void highlightMoveFields() {
             for (int i = 0; i < moveableFields.Length; i++) {
@@ -147,25 +157,40 @@ namespace ChessC.DataTypes
             String outputString = "";
 
             outputString += $"moveType: {currentInputType}\n";
-            if (selectedPiece != null) {
-                outputString += $"{selectedPiece.GetType().Name}\n";
-                outputString += $"moveCount:{selectedPiece.getMoveCount()}\n";
-                if (currentInputType == inputType.selectedPiece || currentInputType == inputType.reselectedPiece) {
-                    if (moveableFields.Length > 0) {
-                        outputString += "moveableFields:\n";
-                        for (int i = 0; i < moveableFields.Length; i++)
+            switch (currentInputType) {
+                case inputType.reselectedPiece:
+                case inputType.selectedPiece:
+                    outputString += $"{selectedPiece.GetType().Name}\n";
+                    outputString += $"moveCount:{selectedPiece.getMoveCount()}\n";
+                    if (currentInputType == inputType.selectedPiece || currentInputType == inputType.reselectedPiece)
+                    {
+                        if (moveableFields.Length > 0)
                         {
-                            if (i > 0) outputString += ",";
-                            outputString += $"[{moveableFields[i].row}, {moveableFields[i].collumn}]";
+                            outputString += "moveableFields:\n";
+                            for (int i = 0; i < moveableFields.Length; i++)
+                            {
+                                if (i > 0) outputString += ",";
+                                outputString += $"[{moveableFields[i].row}, {moveableFields[i].collumn}]";
+                            }
                         }
                     }
-                }
+                    break;
+                    
+                default:
+                    outputString = "inputType error";
+                    break;
             }
+            outputString += "\nClaims:";
+                    outputString += $"Field:{selectedField.row}, {selectedField.collumn}\n";
+                    Claim[] claimArray = Fields[selectedField.row, selectedField.collumn].getClaims();
+                    if (claimArray != null) for (int i = 0; i < claimArray.Length; i++) outputString += $"{i}: claimant:{claimArray[i].claimant.GetType().Name}" +
+                                $"loc:{claimArray[i].claimant.getLocation().row}, {claimArray[i].claimant.getLocation().collumn}\n";  
             return outputString;
         }
 
         public void receiveClick(coordPair clickLocation) {
             currentInputType = determineInputType(clickLocation);
+            selectedField = clickLocation;
             switch (currentInputType) {
                 case inputType.reselectedPiece:
                 case inputType.selectedPiece:
@@ -195,8 +220,8 @@ namespace ChessC.DataTypes
                 Fields[location.row, location.collumn].setPiece(null);
             }
             coordPair selectedPieceCurLocation = selectedPiece.getLocation();
-            Fields[selectedPieceCurLocation.row, selectedPieceCurLocation.collumn].setPiece(null);
             removeAllClaimsOf(inputPiece);
+            Fields[selectedPieceCurLocation.row, selectedPieceCurLocation.collumn].setPiece(null);
             selectedPiece.setLocation(location);
             selectedPiece.setMoveCalcUpdate(true);
             Fields[location.row, location.collumn].setPiece(selectedPiece);
@@ -205,20 +230,21 @@ namespace ChessC.DataTypes
             addClaims(inputPiece);
 
             cycleMoveColors();
+            selectedPiece = null;
+            currentInputType = inputType.nullSelection;
         }
 
         private void removeAllClaimsOf(Piece inputPiece) {
             coordPair[] oldClaimFields = inputPiece.returnAllPossibleMoves();
             for (int i = 0; i < oldClaimFields.Length; i++) Fields[oldClaimFields[i].row, oldClaimFields[i].collumn].removeClaimOf(inputPiece);
-            //TO-DO: this is probably not the best practice, seeing as there is a lot of random memory address access, owing to repeated
-            //references to the inputPiece object... maybe a cached struct with the minimum footprint that still ensures unique piece description
-            //is better? For now, i'll just do it this way and put it on my everexpanding backburner.
         }
 
         private void addClaims(Piece inputPiece)
         {
             coordPair[] fieldsToClaim = inputPiece.returnAllPossibleMoves();
             for (int i = 0; i < fieldsToClaim.Length; i++) Fields[fieldsToClaim[i].row, fieldsToClaim[i].collumn].addClaim(inputPiece);
+            //for (int i = 0; i < claimSpecificFields.Length; i++) Fields[claimSpecificFields[i].row, claimSpecificFields[i].collumn].addClaim(inputPiece);
+            claimSpecificFields = new coordPair[0]; //make sure its empty!!!!
         }
         private void initPieceArray()
         {
