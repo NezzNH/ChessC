@@ -18,7 +18,10 @@ namespace ChessC.DataTypes
         private Piece selectedPiece;
         private directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
                                                               directions.Down, directions.DownLeft, directions.Left, directions.LeftUp};
-        private coordPair[] moveableFields, claimSpecificFields;
+        private coordPair[] moveableFields, claimSpecificFields; //refactoring this WILL SUCK. TO-DO!!! change to struct
+                                                                 //that contains OffsetType information. Dont use MoveOffset for this, extra space for no reason
+                                                                 //this'll also help me remove the claimSpecificFields and unify everything into one neat structure
+                                                                 //and that's ALWAYS really cool!
         private coordPair dimensions, selectedField;
         private color currentMoveColor;
         
@@ -339,8 +342,6 @@ namespace ChessC.DataTypes
                 }
             }
         }
-        
-
 
         private Color convertColor(color inputcolor) {
             if (inputcolor == color.white) return Color.Wheat;

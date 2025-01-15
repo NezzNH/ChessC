@@ -20,6 +20,7 @@ namespace ChessC.Pieces
             MoveOffset tempOffset;
             tempOffset.moveDirection = directions.Up;
             tempOffset.isRecurring = false;
+            tempOffset.offsetType = OffsetType.MoveOffset;
 
             moveOffsets.Clear();
 
@@ -39,6 +40,21 @@ namespace ChessC.Pieces
                 tempOffset.moveOffset = tempCoordOffset;
                 moveOffsets.Add(tempOffset);
             }
+
+            //attack offset portion
+
+            tempOffset.offsetType = OffsetType.AttackOffset;
+
+            tempCoordOffset.row = 1;
+            tempCoordOffset.collumn = 1;
+
+            tempCoordOffset.row *= directionMultiplier;
+
+            tempOffset.moveOffset = tempCoordOffset;
+            moveOffsets.Add(tempOffset);
+
+            tempCoordOffset.collumn = -1;
+            moveOffsets.Add(tempOffset);
         }
     }
 }

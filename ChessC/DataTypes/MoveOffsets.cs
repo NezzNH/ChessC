@@ -8,8 +8,17 @@ namespace ChessC.DataTypes
 {
     struct MoveOffset
     {
-        public bool isRecurring;
-        public directions moveDirection;
         public coordPair moveOffset;
+        public directions moveDirection;
+        public OffsetType offsetType;
+        public bool isRecurring;
+    }
+
+    enum OffsetType
+    {
+        MoveAndAttackOffset,
+        AttackOffset,
+        MoveOffset,
+        ConditionalOffset
     }
 }

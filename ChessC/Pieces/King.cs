@@ -14,13 +14,13 @@ namespace ChessC.Pieces
         public override void calculateDirections()
         {
             MoveOffset tempoffset;
-            tempoffset.moveOffset = location;
+            tempoffset.moveDirection = directions.Up;
             tempoffset.isRecurring = false;
-            
+            tempoffset.offsetType = OffsetType.MoveAndAttackOffset;
 
             for (int i = 0; i < 8; i++)
             {
-                tempoffset.moveDirection = tempDirectionsGlobalArray[i];
+                tempoffset.moveOffset = convertDirectionToOffset(tempDirectionsGlobalArray[i]);
                 moveOffsets.Add(tempoffset);
             }
         }

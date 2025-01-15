@@ -18,7 +18,8 @@ namespace ChessC.Pieces
         {
             MoveOffset tempOffset;
             tempOffset.isRecurring = false;
-            tempOffset.moveDirection = directions.Up; //rework constructor to have this as an optional variable
+            tempOffset.moveDirection = directions.Up;
+            tempOffset.offsetType = OffsetType.MoveAndAttackOffset;
 
             coordPair tempPair;
 

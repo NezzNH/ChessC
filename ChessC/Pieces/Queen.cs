@@ -18,6 +18,7 @@ namespace ChessC.Pieces
             MoveOffset tempOffset;
             tempOffset.moveOffset = location;
             tempOffset.isRecurring = true;
+            tempOffset.offsetType = OffsetType.MoveAndAttackOffset;
 
             for (int i = 0; i < 8; i++)
             {

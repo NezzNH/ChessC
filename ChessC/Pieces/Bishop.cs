@@ -18,6 +18,7 @@ namespace ChessC.Pieces
             tempoffset.moveDirection = directions.UpRight;
             tempoffset.moveOffset = location;
             tempoffset.isRecurring = true;
+            tempoffset.offsetType = OffsetType.MoveAndAttackOffset;
             moveOffsets.Add(tempoffset);
             tempoffset.moveDirection = directions.RightDown;
             moveOffsets.Add(tempoffset);

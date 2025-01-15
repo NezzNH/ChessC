@@ -60,7 +60,7 @@ namespace ChessC.Pieces
         public void incrementMoveCount() { this.moveCounter++; }
         public int getMoveCount() { return this.moveCounter; }
 
-        private coordPair convertDirectionToOffset(directions direction)
+        protected coordPair convertDirectionToOffset(directions direction)
         {
             coordPair tempCoordPair;
             switch (direction)
