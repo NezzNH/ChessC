@@ -15,19 +15,29 @@ namespace ChessC.Pieces
 
         public override void calculateDirections()
         {
+            this.moveCalcIsUpdated = true;
+
+            MoveOffset tempOffset;
+            tempOffset.moveDirection = directions.Up;
+            tempOffset.isRecurring = false;
+
             moveOffsets.Clear();
+
             int directionMultiplier;
             coordPair tempCoordOffset;
             tempCoordOffset.row = 0; tempCoordOffset.collumn = 0;
+
             if (this.pieceColor == color.white) directionMultiplier = 1;
             else directionMultiplier = -1;
 
             tempCoordOffset.row = directionMultiplier * 1;
-            moveOffsets.Add(new MoveOffsets(directions.Up, tempCoordOffset, false));
+            tempOffset.moveOffset = tempCoordOffset;
+            moveOffsets.Add(tempOffset);
             if (moveCounter < 1)
             {
                 tempCoordOffset.row = directionMultiplier * 2;
-                moveOffsets.Add(new MoveOffsets(directions.Up, tempCoordOffset, false));
+                tempOffset.moveOffset = tempCoordOffset;
+                moveOffsets.Add(tempOffset);
             }
         }
     }

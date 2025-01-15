@@ -339,6 +339,8 @@ namespace ChessC.DataTypes
                 }
             }
         }
+        
+
 
         private Color convertColor(color inputcolor) {
             if (inputcolor == color.white) return Color.Wheat;

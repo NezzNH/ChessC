@@ -13,8 +13,8 @@ namespace ChessC.Pieces
                                                               directions.Down, directions.DownLeft, directions.Left, directions.LeftUp}; //temp for queen writing convention
         protected bool pinned, isRecurringMovePiece, moveCalcIsUpdated;
         protected coordPair location, dimensions;
-        protected List<MoveOffsets> moveOffsets;
-        protected coordPair[] possibleMoveLocations;
+        protected List<MoveOffset> moveOffsets;
+        protected coordPair[] possibleMoveLocations, claimLocations;
         protected color pieceColor;
         protected int positionInPiecesArray, moveCounter;
         protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true, int moveCount = 0)
@@ -26,14 +26,14 @@ namespace ChessC.Pieces
             this.dimensions.row = 8;
             this.dimensions.collumn = 8;
             this.isRecurringMovePiece = isRecurringMovePiece;
-            this.moveOffsets = new List<MoveOffsets>();
+            this.moveOffsets = new List<MoveOffset>();
             this.calculateDirections();
             this.moveCalcIsUpdated = moveCalcIsUpdated;
         }
         protected Piece()
         {
             this.moveCounter = 0;
-            this.moveOffsets = new List<MoveOffsets>();
+            this.moveOffsets = new List<MoveOffset>();
             this.pinned = false;
             coordPair tempPair;
             tempPair.collumn = 0;
@@ -57,7 +57,7 @@ namespace ChessC.Pieces
         public void setMoveCalcUpdate(bool input) { this.moveCalcIsUpdated = input; }
         public bool getMoveCalcUpdate() { return this.moveCalcIsUpdated; }
         public bool isRecurrPiece() { return this.isRecurringMovePiece; }
-
+        public void incrementMoveCount() { this.moveCounter++; }
         public int getMoveCount() { return this.moveCounter; }
 
         private coordPair convertDirectionToOffset(directions direction)
@@ -119,7 +119,9 @@ namespace ChessC.Pieces
         }
 
         public coordPair[] returnAllPossibleMoves() {
-            if (possibleMoveLocations != null && moveCalcIsUpdated == false) return possibleMoveLocations;
+
+            if (possibleMoveLocations != null && !moveCalcIsUpdated) return possibleMoveLocations;
+
             List<coordPair> moveLocations = new List<coordPair>();
             if (isRecurringMovePiece)
             {
@@ -166,6 +168,6 @@ namespace ChessC.Pieces
             possibleMoveLocations = finalArray; //hold a copy in case the user requests the moves again and the piece hasnt moved
             return finalArray;
         }
-        public void incrementMoveCount() { this.moveCounter++; }
+        
     }
 }
