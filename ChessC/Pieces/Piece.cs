@@ -14,9 +14,9 @@ namespace ChessC.Pieces
         protected bool pinned, isRecurringMovePiece, moveCalcIsUpdated;
         protected coordPair location, dimensions;
         protected List<MoveOffset> moveOffsets;
-        protected coordPair[] possibleMoveLocations, claimLocations;
+        protected MoveField[] possibleMoveLocations;
         protected color pieceColor;
-        protected int positionInPiecesArray, moveCounter;
+        protected int moveCounter;
         protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true, int moveCount = 0)
         {
             this.moveCounter = moveCount;
@@ -118,13 +118,16 @@ namespace ChessC.Pieces
             else return true;
         }
 
-        public coordPair[] returnAllPossibleMoves() {
+        public MoveField[] returnAllPossibleMoves() {
 
             if (possibleMoveLocations != null && !moveCalcIsUpdated) return possibleMoveLocations;
 
-            List<coordPair> moveLocations = new List<coordPair>();
+            MoveField currentMoveField;
+            List<MoveField> moveLocations = new List<MoveField>();
+
             if (isRecurringMovePiece)
             {
+                currentMoveField.offsetType = OffsetType.MoveAndAttackOffset; // TO-DO: possible fix later to allow for combined move mode custom pieces, discrete and raycast
                 bool[] rayDepletionArray = new bool[moveOffsets.Count];
                 int offset = 0, depletedRayCounter = 0;
                 bool areAllRaysDepleted = false;
@@ -141,7 +144,10 @@ namespace ChessC.Pieces
                             rayLoc.row += tempDisp.row;
                             rayLoc.collumn += tempDisp.collumn;
 
-                            if (isWithinBounds(rayLoc)) moveLocations.Add(rayLoc);
+                            if (isWithinBounds(rayLoc)) {
+                                currentMoveField.coords = rayLoc;
+                                moveLocations.Add(currentMoveField);
+                            }
                             else rayDepletionArray[i] = true; // true means ray is depleted
                         } while (!rayDepletionArray[i]);
                         depletedRayCounter++;
@@ -157,17 +163,21 @@ namespace ChessC.Pieces
                     hitLoc = location;
                     hitLoc.row += moveOffsets[i].moveOffset.row;
                     hitLoc.collumn += moveOffsets[i].moveOffset.collumn;
-                    if (isWithinBounds(hitLoc)) moveLocations.Add(hitLoc);
+                    if (isWithinBounds(hitLoc)) {
+                        currentMoveField.coords = hitLoc;
+                        currentMoveField.offsetType = moveOffsets[i].offsetType;
+                        moveLocations.Add(currentMoveField);
+                    }
+                    
                 }
             }
 
             int finalArraySize = moveLocations.Count;
-            coordPair[] finalArray = new coordPair[finalArraySize];
+            MoveField[] finalArray = new MoveField[finalArraySize];
             finalArray = moveLocations.ToArray();
             moveCalcIsUpdated = false;
             possibleMoveLocations = finalArray; //hold a copy in case the user requests the moves again and the piece hasnt moved
             return finalArray;
         }
-        
     }
 }

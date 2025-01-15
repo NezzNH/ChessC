@@ -16,19 +16,15 @@ namespace ChessC.DataTypes
         private Field[,] Fields = new Field[8, 8];
         private List<Piece> pieces = new List<Piece>(); //remember all that kerfuffel i made about lists... yeah...
         private Piece selectedPiece;
-        private directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
-                                                              directions.Down, directions.DownLeft, directions.Left, directions.LeftUp};
-        private coordPair[] moveableFields, claimSpecificFields; //refactoring this WILL SUCK. TO-DO!!! change to struct
-                                                                 //that contains OffsetType information. Dont use MoveOffset for this, extra space for no reason
-                                                                 //this'll also help me remove the claimSpecificFields and unify everything into one neat structure
-                                                                 //and that's ALWAYS really cool!
+
+        private MoveField[] moveFields; //replacement
         private coordPair dimensions, selectedField;
         private color currentMoveColor;
         
         public inputType currentInputType;
         public Board()
         {
-            moveableFields = new coordPair[0];
+            moveFields = new MoveField[0];
             selectedPiece = null;
             pieces = new List<Piece>();
             dimensions.row = 8; dimensions.collumn = 8;
@@ -52,8 +48,8 @@ namespace ChessC.DataTypes
 
         private bool fieldIsViableMove(coordPair moveLocation)
         {
-            for (int i = 0; i < moveableFields.Length; i++) {
-                if (moveLocation.row == moveableFields[i].row && moveLocation.collumn == moveableFields[i].collumn) return true;
+            for (int i = 0; i < moveFields.Length; i++) {
+                if (moveLocation.row == moveFields[i].coords.row && moveLocation.collumn == moveFields[i].coords.collumn) return true;
             }
             return false;
         }
@@ -106,53 +102,106 @@ namespace ChessC.DataTypes
             else return true;
         }
 
-        private coordPair[] filterMovesForOccupancy(coordPair[] inputFields) {
-            List<coordPair> tempList = new List<coordPair> ();
-            List<coordPair> claimSpecific = new List<coordPair>();
+        private MoveField[] filterMovesForOccupancy(MoveField[] inputFields) {
+            List<MoveField> tempList = new List<MoveField> ();
+            MoveField tempField;
+
             if (selectedPiece.isRecurrPiece()) {
-                bool encounteredPiece = false, newDiagonal = true;
+                tempField.offsetType = OffsetType.MoveAndAttackOffset;
+                bool newDiagonal = true, skip = false;
+                int encounteredPieceCounter = 0;
                 for (int i = 0; i < inputFields.Length; i++) {
-                    if (!newDiagonal && !isAlongSameDiagonal(inputFields[i - 1], inputFields[i])) {
+                    tempField.coords = inputFields[i].coords;
+                    if (!newDiagonal && !isAlongSameDiagonal(inputFields[i - 1].coords, inputFields[i].coords)) {
+                        skip = false;
+                        tempField.offsetType = OffsetType.MoveAndAttackOffset; //for now
                         newDiagonal = true;
-                        encounteredPiece = false;
+                        encounteredPieceCounter = 0;
                     } 
                     else newDiagonal = false;
 
-                    if (encounteredPiece && !newDiagonal) continue;
+                    if (encounteredPieceCounter == 1 && !newDiagonal) tempField.offsetType = OffsetType.Claim;
+                    
 
-                    Piece selectedPiece = Fields[inputFields[i].row, inputFields[i].collumn].getPiece();
+                    Piece selectedPiece = Fields[inputFields[i].coords.row, inputFields[i].coords.collumn].getPiece();
 
                     if (selectedPiece != null)
                     {
-                        encounteredPiece = true;
-                        if (selectedPiece.getColor() == currentMoveColor) claimSpecific.Add(inputFields[i]);
-                        else tempList.Add(inputFields[i]);
+                        if (encounteredPieceCounter > 0) skip = true;
+                        else {
+                            if (selectedPiece.getColor() == currentMoveColor) tempField.offsetType = OffsetType.Claim;
+
+                            else tempField.offsetType = OffsetType.MoveAndAttackOffset;
+                        }
+
+                        encounteredPieceCounter++;
                     }
-                    else tempList.Add(inputFields[i]);
+                    else
+                    {
+                        switch (encounteredPieceCounter)
+                        {
+                            case 0:
+                                tempField.offsetType = OffsetType.MoveAndAttackOffset;
+                                break;
+                            case 1:
+                                tempField.offsetType = OffsetType.Claim;
+                                break;
+                            default:
+                                skip = true;
+                                break;
+                        }
+                    }
+                    if (!skip) tempList.Add(tempField);
                 }
             }
             else
             {
                 for (int i = 0; i < inputFields.Length; i++)
                 {
-                    if (Fields[inputFields[i].row, inputFields[i].collumn].getPiece() == null ||
-                        Fields[inputFields[i].row, inputFields[i].collumn].getPiece().getColor() != selectedPiece.getColor()) tempList.Add(inputFields[i]);
+                    if (inputFields[i].offsetType == OffsetType.MoveOffset)
+                    {
+                        if (Fields[inputFields[i].coords.row, inputFields[i].coords.collumn].getPiece() == null) tempList.Add(inputFields[i]);
+                    }
+                    else if (inputFields[i].offsetType == OffsetType.AttackOffset)
+                    {
+                        if (Fields[inputFields[i].coords.row, inputFields[i].coords.collumn].getPiece() != null &&
+                            Fields[inputFields[i].coords.row, inputFields[i].coords.collumn].getPiece().getColor() != currentMoveColor) tempList.Add(inputFields[i]);
+                    }
+                    else tempList.Add(inputFields[i]);
                 }
             }
-            coordPair[] result = tempList.ToArray();
-            claimSpecificFields = claimSpecific.ToArray();
+            MoveField[] result = tempList.ToArray();
             return result;
         }
 
         private void highlightMoveFields() {
-            for (int i = 0; i < moveableFields.Length; i++) {
-                DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor = Color.Green;
+            for (int i = 0; i < moveFields.Length; i++) {
+                Color displayColor = Color.White; //temp
+                switch (moveFields[i].offsetType) {
+                    case OffsetType.MoveAndAttackOffset:
+                    case OffsetType.MoveOffset:
+                        displayColor = Color.Green;
+                        break;
+                    case OffsetType.AttackOffset:
+                        displayColor = Color.Red;
+                        break;
+                    case OffsetType.Claim:
+                        displayColor = Color.Blue;
+                        break;
+                    case OffsetType.ConditionalOffset:
+                        displayColor = Color.Purple;
+                        break;
+                    default:
+                        displayColor = Color.Black;
+                        break;
+                }
+                DisplayFieldMatrix[moveFields[i].coords.row, moveFields[i].coords.collumn].BackColor = displayColor;
             }
         }
 
         private void unhighlightMoveFields() {
-            for (int i = 0; i < moveableFields.Length; i++) {
-                DisplayFieldMatrix[moveableFields[i].row, moveableFields[i].collumn].BackColor = convertColor(Fields[moveableFields[i].row, moveableFields[i].collumn].getColor());            
+            for (int i = 0; i < moveFields.Length; i++) {
+                DisplayFieldMatrix[moveFields[i].coords.row, moveFields[i].coords.collumn].BackColor = convertColor(Fields[moveFields[i].coords.row, moveFields[i].coords.collumn].getColor());
             }
         }
 
@@ -167,13 +216,13 @@ namespace ChessC.DataTypes
                     outputString += $"moveCount:{selectedPiece.getMoveCount()}\n";
                     if (currentInputType == inputType.selectedPiece || currentInputType == inputType.reselectedPiece)
                     {
-                        if (moveableFields.Length > 0)
+                        if (moveFields.Length > 0)
                         {
                             outputString += "moveableFields:\n";
-                            for (int i = 0; i < moveableFields.Length; i++)
+                            for (int i = 0; i < moveFields.Length; i++)
                             {
                                 if (i > 0) outputString += ",";
-                                outputString += $"[{moveableFields[i].row}, {moveableFields[i].collumn}]";
+                                outputString += $"[{moveFields[i].coords.row}, {moveFields[i].coords.collumn}]";
                             }
                         }
                     }
@@ -200,8 +249,8 @@ namespace ChessC.DataTypes
                     selectedPiece = getPieceAt(clickLocation);
                     unhighlightMoveFields();
                     if (selectedPiece.GetType().Name == "Pawn") selectedPiece.calculateDirections();
-                    moveableFields = selectedPiece.returnAllPossibleMoves();
-                    moveableFields = filterMovesForOccupancy(moveableFields);
+                    moveFields = selectedPiece.returnAllPossibleMoves();
+                    moveFields = filterMovesForOccupancy(moveFields);
                     highlightMoveFields();
                     break;
                 case inputType.attackMoveRequest:
@@ -238,16 +287,14 @@ namespace ChessC.DataTypes
         }
 
         private void removeAllClaimsOf(Piece inputPiece) {
-            coordPair[] oldClaimFields = inputPiece.returnAllPossibleMoves();
-            for (int i = 0; i < oldClaimFields.Length; i++) Fields[oldClaimFields[i].row, oldClaimFields[i].collumn].removeClaimOf(inputPiece);
+            MoveField[] oldClaimFields = inputPiece.returnAllPossibleMoves();
+            for (int i = 0; i < oldClaimFields.Length; i++) Fields[oldClaimFields[i].coords.row, oldClaimFields[i].coords.collumn].removeClaimOf(inputPiece);
         }
 
         private void addClaims(Piece inputPiece)
         {
-            coordPair[] fieldsToClaim = inputPiece.returnAllPossibleMoves();
-            for (int i = 0; i < fieldsToClaim.Length; i++) Fields[fieldsToClaim[i].row, fieldsToClaim[i].collumn].addClaim(inputPiece);
-            //for (int i = 0; i < claimSpecificFields.Length; i++) Fields[claimSpecificFields[i].row, claimSpecificFields[i].collumn].addClaim(inputPiece);
-            claimSpecificFields = new coordPair[0]; //make sure its empty!!!!
+            MoveField[] fieldsToClaim = inputPiece.returnAllPossibleMoves();
+            for (int i = 0; i < fieldsToClaim.Length; i++) Fields[fieldsToClaim[i].coords.row, fieldsToClaim[i].coords.collumn].addClaim(inputPiece);
         }
         private void initPieceArray()
         {

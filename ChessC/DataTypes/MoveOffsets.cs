@@ -16,6 +16,8 @@ namespace ChessC.DataTypes
 
     enum OffsetType
     {
+        Null,
+        Claim,
         MoveAndAttackOffset,
         AttackOffset,
         MoveOffset,

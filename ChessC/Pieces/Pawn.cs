@@ -46,14 +46,16 @@ namespace ChessC.Pieces
             tempOffset.offsetType = OffsetType.AttackOffset;
 
             tempCoordOffset.row = 1;
-            tempCoordOffset.collumn = 1;
+            tempCoordOffset.collumn = -1;
 
             tempCoordOffset.row *= directionMultiplier;
 
             tempOffset.moveOffset = tempCoordOffset;
             moveOffsets.Add(tempOffset);
 
-            tempCoordOffset.collumn = -1;
+            tempCoordOffset.collumn = 1;
+
+            tempOffset.moveOffset = tempCoordOffset;
             moveOffsets.Add(tempOffset);
         }
     }
