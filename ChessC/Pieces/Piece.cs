@@ -14,7 +14,9 @@ namespace ChessC.Pieces
         protected bool pinned, isRecurringMovePiece, moveCalcIsUpdated;
         protected coordPair location, dimensions;
         protected List<MoveOffset> moveOffsets;
-        protected MoveField[] possibleMoveLocations;
+        protected MoveField[] possibleMoveLocations; //just make sure this is always filtered for claim offset types. if it is ( i think so )
+                                                     //then adding claims to each pieces internal data structure will SIGNIFICANTLY speed up a
+                                                     //possibly n^3 algorithm that would kill performance
         protected color pieceColor;
         protected int moveCounter;
         protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true, int moveCount = 0)
@@ -59,6 +61,8 @@ namespace ChessC.Pieces
         public bool isRecurrPiece() { return this.isRecurringMovePiece; }
         public void incrementMoveCount() { this.moveCounter++; }
         public int getMoveCount() { return this.moveCounter; }
+
+        public void setInternalMoveFields(MoveField[] input) { input = this.possibleMoveLocations; }
 
         protected coordPair convertDirectionToOffset(directions direction)
         {

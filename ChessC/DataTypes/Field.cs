@@ -39,6 +39,26 @@ namespace ChessC.DataTypes
             newClaim.isRaycastClaim = inputPiece.isRecurrPiece(); //To-DO: if the bottom TODO is to be done, use this method to match Claim struct exactly
             claims.Add(newClaim);
         }
+
+        public Piece[] getClaimantsOfColor(color inputColor)
+        {
+            Piece currentPiece = null;
+            List<Piece> relevantPiecesList = new List<Piece>();
+            Piece[] finalArray;
+
+            if (claims == null || claims.Count == 0) return null;
+            for (int i = 0; i < claims.Count; i++)
+            {
+                if (claims[i].claimant != currentPiece && claims[i].claimant.getColor() == inputColor)
+                {
+                    currentPiece = claims[i].claimant;
+                    relevantPiecesList.Add(currentPiece);
+                }
+            }
+
+            finalArray = relevantPiecesList.ToArray();
+            return finalArray;
+        }
         public void removeClaimOf(Piece inputPiece) {
             if (claims == null || claims.Count == 0) return; //TO-DO: fix necronomicon tier code
             for (int i = 0; i < claims.Count; i++) { 

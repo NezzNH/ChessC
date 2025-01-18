@@ -14,10 +14,10 @@ namespace ChessC.DataTypes
     {
         private Label[,] DisplayFieldMatrix;
         private Field[,] Fields = new Field[8, 8];
-        private List<Piece> pieces = new List<Piece>(); //remember all that kerfuffel i made about lists... yeah...
+        private List<Piece> pieces = new List<Piece>();
         private Piece selectedPiece;
 
-        private MoveField[] moveFields; //replacement
+        private MoveField[] moveFields;
         private coordPair dimensions, selectedField;
         private color currentMoveColor;
         
@@ -66,9 +66,9 @@ namespace ChessC.DataTypes
             errorRequest
         }
 
-        private void cycleMoveColors() {
-            if (currentMoveColor == color.white) currentMoveColor = color.black;
-            else currentMoveColor = color.white;
+        private color cycleMoveColors(color inputColor) {
+            if (inputColor == color.white) return color.black;
+            else return color.white;
         }
 
         public inputType determineInputType(coordPair clickLocation) {
@@ -102,7 +102,7 @@ namespace ChessC.DataTypes
             else return true;
         }
 
-        private MoveField[] filterMovesForOccupancy(MoveField[] inputFields) {
+        private MoveField[] filterMovesForOccupancy(MoveField[] inputFields, color inputColor) {
             List<MoveField> tempList = new List<MoveField> ();
             MoveField tempField;
 
@@ -129,7 +129,7 @@ namespace ChessC.DataTypes
                     {
                         if (encounteredPieceCounter > 0) skip = true;
                         else {
-                            if (selectedPiece.getColor() == currentMoveColor) tempField.offsetType = OffsetType.Claim;
+                            if (selectedPiece.getColor() == inputColor) tempField.offsetType = OffsetType.Claim;
 
                             else tempField.offsetType = OffsetType.MoveAndAttackOffset;
                         }
@@ -165,7 +165,7 @@ namespace ChessC.DataTypes
                     else if (inputFields[i].offsetType == OffsetType.AttackOffset)
                     {
                         if (Fields[inputFields[i].coords.row, inputFields[i].coords.collumn].getPiece() != null &&
-                            Fields[inputFields[i].coords.row, inputFields[i].coords.collumn].getPiece().getColor() != currentMoveColor) tempList.Add(inputFields[i]);
+                            Fields[inputFields[i].coords.row, inputFields[i].coords.collumn].getPiece().getColor() != inputColor) tempList.Add(inputFields[i]);
                     }
                     else tempList.Add(inputFields[i]);
                 }
@@ -174,11 +174,19 @@ namespace ChessC.DataTypes
             return result;
         }
 
+        private bool checkPin() { return false; } //TO-DO
+        private bool checkCheck() { return false; } //TO-DO
+
         private void highlightMoveFields() {
             for (int i = 0; i < moveFields.Length; i++) {
                 Color displayColor = Color.White; //temp
                 switch (moveFields[i].offsetType) {
                     case OffsetType.MoveAndAttackOffset:
+
+                        coordPair coordBuffer = moveFields[i].coords;
+                        if (Fields[coordBuffer.row, coordBuffer.collumn].getPiece() == null) displayColor = Color.Green;
+                        else displayColor = Color.Red;
+                        break;
                     case OffsetType.MoveOffset:
                         displayColor = Color.Green;
                         break;
@@ -240,6 +248,25 @@ namespace ChessC.DataTypes
             return outputString;
         }
 
+        private void completePieceMoveCalculation(Piece inputPiece)
+        {
+            inputPiece.calculateDirections(); //skip this for things like non pawns and such, once you make sure you dont need it fo rany other esoteric reason
+            MoveField[] internalMoveFields = inputPiece.returnAllPossibleMoves();
+
+            internalMoveFields = filterMovesForOccupancy(internalMoveFields, inputPiece.getColor());
+
+            //add filtering step here. try not to do an expensive search. im sure we can differentiate
+            //between new and old claims in some way. length will have something to do with it
+            //but there is no way to guarantee that the last n positions in an array
+            //will be the new claims. in fact, that will almost never be the case
+
+            inputPiece.setInternalMoveFields(internalMoveFields); //hahahahahhahaahah oh god help me and my naming conventions
+
+            //now, see to it if an outside function should do things like impose checks, pins, castle restrictions and
+            //other conditional issues
+            
+        }
+
         public void receiveClick(coordPair clickLocation) {
             currentInputType = determineInputType(clickLocation);
             selectedField = clickLocation;
@@ -250,7 +277,8 @@ namespace ChessC.DataTypes
                     unhighlightMoveFields();
                     if (selectedPiece.GetType().Name == "Pawn") selectedPiece.calculateDirections();
                     moveFields = selectedPiece.returnAllPossibleMoves();
-                    moveFields = filterMovesForOccupancy(moveFields);
+                    moveFields = filterMovesForOccupancy(moveFields, currentMoveColor);
+                    selectedPiece.setInternalMoveFields(moveFields);
                     highlightMoveFields();
                     break;
                 case inputType.attackMoveRequest:
@@ -273,6 +301,17 @@ namespace ChessC.DataTypes
             }
             coordPair selectedPieceCurLocation = selectedPiece.getLocation();
             removeAllClaimsOf(inputPiece);
+
+            Piece[] updateClaimants = Fields[selectedPieceCurLocation.row, selectedPieceCurLocation.collumn].getClaimantsOfColor(cycleMoveColors(currentMoveColor));
+
+            if (updateClaimants != null)
+            {
+                for (int i = 0; i < updateClaimants.Length; i++)
+                {
+                    completePieceMoveCalculation(updateClaimants[i]);
+                }
+            }
+
             Fields[selectedPieceCurLocation.row, selectedPieceCurLocation.collumn].setPiece(null);
             selectedPiece.setLocation(location);
             selectedPiece.setMoveCalcUpdate(true);
@@ -281,7 +320,7 @@ namespace ChessC.DataTypes
             selectedPiece.returnAllPossibleMoves();
             addClaims(inputPiece);
 
-            cycleMoveColors();
+            currentMoveColor = cycleMoveColors(currentMoveColor);
             selectedPiece = null;
             currentInputType = inputType.nullSelection;
         }
