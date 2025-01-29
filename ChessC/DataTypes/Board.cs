@@ -102,6 +102,18 @@ namespace ChessC.DataTypes
             else return true;
         }
 
+        private MoveField[] updatePieceMoveCalculation(Piece inputPiece)
+        {
+            MoveField[] moveFields, moveBuffer;
+            List<MoveField> moveFieldList = new List<MoveField>();
+
+            if (inputPiece.returnVariableMovePiece()) inputPiece.calculateDirections();
+
+            moveBuffer = inputPiece.returnAllPossibleMoves();
+
+            return moveFields; //TO-DO
+        }
+
         private MoveField[] filterMovesForOccupancy(MoveField[] inputFields, color inputColor) {
             List<MoveField> tempList = new List<MoveField> ();
             MoveField tempField;
@@ -182,7 +194,6 @@ namespace ChessC.DataTypes
                 Color displayColor = Color.White; //temp
                 switch (moveFields[i].offsetType) {
                     case OffsetType.MoveAndAttackOffset:
-
                         coordPair coordBuffer = moveFields[i].coords;
                         if (Fields[coordBuffer.row, coordBuffer.collumn].getPiece() == null) displayColor = Color.Green;
                         else displayColor = Color.Red;
@@ -250,20 +261,6 @@ namespace ChessC.DataTypes
 
         private void completePieceMoveCalculation(Piece inputPiece)
         {
-            inputPiece.calculateDirections(); //skip this for things like non pawns and such, once you make sure you dont need it fo rany other esoteric reason
-            MoveField[] internalMoveFields = inputPiece.returnAllPossibleMoves();
-
-            internalMoveFields = filterMovesForOccupancy(internalMoveFields, inputPiece.getColor());
-
-            //add filtering step here. try not to do an expensive search. im sure we can differentiate
-            //between new and old claims in some way. length will have something to do with it
-            //but there is no way to guarantee that the last n positions in an array
-            //will be the new claims. in fact, that will almost never be the case
-
-            inputPiece.setInternalMoveFields(internalMoveFields); //hahahahahhahaahah oh god help me and my naming conventions
-
-            //now, see to it if an outside function should do things like impose checks, pins, castle restrictions and
-            //other conditional issues
             
         }
 

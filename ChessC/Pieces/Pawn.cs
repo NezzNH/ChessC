@@ -10,8 +10,10 @@ namespace ChessC.Pieces
 {
     class Pawn : Piece
     {
-        public Pawn() : base() { }
-        public Pawn(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = false) : base(location, pieceColor, pinned, isRecurringMovePiece) { }
+        public Pawn() : base() {
+            isVariableMovePiece = true;
+        }
+        public Pawn(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = false, bool isVariableMovePiece = true) : base(location, pieceColor, pinned, isRecurringMovePiece, isVariableMovePiece) { }
 
         public override void calculateDirections()
         {

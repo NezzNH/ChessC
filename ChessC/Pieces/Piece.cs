@@ -11,7 +11,7 @@ namespace ChessC.Pieces
     {
         protected directions[] tempDirectionsGlobalArray = {directions.Up, directions.UpRight, directions.Right, directions.RightDown,
                                                               directions.Down, directions.DownLeft, directions.Left, directions.LeftUp}; //temp for queen writing convention
-        protected bool pinned, isRecurringMovePiece, moveCalcIsUpdated;
+        protected bool pinned, isRecurringMovePiece, moveCalcIsUpdated, isVariableMovePiece;
         protected coordPair location, dimensions;
         protected List<MoveOffset> moveOffsets;
         protected MoveField[] possibleMoveLocations; //just make sure this is always filtered for claim offset types. if it is ( i think so )
@@ -19,7 +19,7 @@ namespace ChessC.Pieces
                                                      //possibly n^3 algorithm that would kill performance
         protected color pieceColor;
         protected int moveCounter;
-        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true, int moveCount = 0)
+        protected Piece(coordPair location, color pieceColor, bool pinned = false, bool isRecurringMovePiece = true, bool moveCalcIsUpdated = true, bool isVariableMovePiece = false, int moveCount = 0)
         {
             this.moveCounter = moveCount;
             this.pinned = pinned;
@@ -31,6 +31,7 @@ namespace ChessC.Pieces
             this.moveOffsets = new List<MoveOffset>();
             this.calculateDirections();
             this.moveCalcIsUpdated = moveCalcIsUpdated;
+            this.isVariableMovePiece = isVariableMovePiece;
         }
         protected Piece()
         {
@@ -61,6 +62,8 @@ namespace ChessC.Pieces
         public bool isRecurrPiece() { return this.isRecurringMovePiece; }
         public void incrementMoveCount() { this.moveCounter++; }
         public int getMoveCount() { return this.moveCounter; }
+
+        public bool returnVariableMovePiece() { return this.isVariableMovePiece; }
 
         public void setInternalMoveFields(MoveField[] input) { input = this.possibleMoveLocations; }
 
